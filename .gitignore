@@ -1,0 +1,5 @@
+/api/target
+/api/.env
+/ui/target
+/ui/dist
+/ui/.env
