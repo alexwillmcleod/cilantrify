@@ -1,3 +1,4 @@
+pub mod middleware;
 pub mod routes;
 
 use anyhow::Result;

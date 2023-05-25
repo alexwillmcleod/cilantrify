@@ -2,22 +2,26 @@ use anyhow::Result;
 use axum::{
   extract::{Json, State},
   http::StatusCode,
+  middleware,
   routing::{get, post},
-  Router,
-};
-use axum_sessions::{
-  async_session::MemoryStore,
-  extractors::{ReadableSession, WritableSession},
-  SessionLayer,
+  Extension, Router,
 };
 use dotenvy::dotenv;
 use entity::entities::user;
-use http::{header, Method, Request, Response};
-use sea_axum_app::{routes::auth::User, AppState};
+use http::{
+  header::{self, AUTHORIZATION, CONTENT_TYPE},
+  HeaderValue, Method, Request, Response,
+};
+use sea_axum_app::{
+  middleware::auth::maybe_auth,
+  routes::auth::{jwt::UserClaims, User},
+  AppState,
+};
 use sea_orm::{ActiveModelTrait, Set};
 use serde::{Deserialize, Serialize};
 use std::net::SocketAddr;
 use std::sync::Arc;
+use tower::ServiceBuilder;
 use tower_http::cors::{Any, CorsLayer};
 use tracing_subscriber;
 
@@ -31,12 +35,9 @@ async fn main() -> Result<()> {
 
   let cors = CorsLayer::new()
     .allow_methods([Method::GET, Method::POST])
-    .allow_origin(Any);
-
-  let store = MemoryStore::new();
-  let secret =
-    std::env::var("SESSION_SECRET").expect("SESSION_SECRET environment variable not set");
-  let session_layer = SessionLayer::new(store, &secret.as_bytes()).with_secure(false);
+    .allow_credentials(true)
+    .allow_headers([AUTHORIZATION, CONTENT_TYPE])
+    .allow_origin("http://localhost:5173".parse::<HeaderValue>().unwrap());
 
   let auth_routes = sea_axum_app::routes::auth::auth_routes();
 
@@ -44,9 +45,13 @@ async fn main() -> Result<()> {
     .route("/", get(root))
     .route("/cat", get(get_cat_fact))
     .nest("/auth", auth_routes)
-    .with_state(Arc::new(AppState::new().await?))
-    .layer(session_layer)
-    .layer(cors);
+    .layer(
+      ServiceBuilder::new()
+        .layer(Extension::<Option<UserClaims>>(None))
+        .layer(middleware::from_fn(maybe_auth)),
+    )
+    .layer(cors)
+    .with_state(Arc::new(AppState::new().await?));
 
   let addr = SocketAddr::from(([127, 0, 0, 1], 80));
   tracing::debug!("Listening on port {}", 80);
@@ -57,10 +62,14 @@ async fn main() -> Result<()> {
   Ok(())
 }
 
-async fn root(mut session: ReadableSession) -> axum::response::Result<String> {
-  let user: Option<User> = session.get("user");
-  match user {
-    Some(user_body) => Ok(format!("Hello {}", user_body.name)),
+async fn root(
+  Extension(user_claims): Extension<Option<UserClaims>>,
+) -> axum::response::Result<String> {
+  match user_claims {
+    Some(user_body) => Ok(format!(
+      "Hello {} {}",
+      user_body.given_name, user_body.family_name
+    )),
     None => Ok(String::from("Hello, from Axum!")),
   }
 }

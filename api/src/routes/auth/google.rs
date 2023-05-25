@@ -3,14 +3,15 @@
 // Endpoint to sign in with Google
 // Endpoint to sign in with Google endpoint
 
+use crate::routes::auth::jwt::UserClaims;
 use axum::{
-  extract::{Query, State},
+  extract::{Json, State},
   http::StatusCode,
   response::Redirect,
-  routing::get,
+  routing::{get, post},
   Router,
 };
-use axum_sessions::extractors::WritableSession;
+use axum_macros::debug_handler;
 use entity::entities::user;
 use oauth2::{AuthorizationCode, CsrfToken, Scope, TokenResponse};
 use reqwest::Client;
@@ -23,7 +24,7 @@ use crate::{routes::auth::User, AppState};
 pub fn google_routes() -> Router<Arc<AppState>> {
   Router::new()
     .route("/", get(continue_with_google))
-    .route("/callback", get(continue_with_google_callback))
+    .route("/callback", post(continue_with_google_callback))
 }
 
 async fn continue_with_google(
@@ -40,15 +41,14 @@ async fn continue_with_google(
 }
 
 #[derive(Deserialize, Debug)]
-struct ContinueWithGoogleCallbackQuery {
+struct ContinueWithGoogleCallback {
   code: String,
-  state: String,
 }
 
+#[debug_handler]
 async fn continue_with_google_callback(
   State(state): State<Arc<AppState>>,
-  Query(query): Query<ContinueWithGoogleCallbackQuery>,
-  mut session: WritableSession,
+  Json(query): Json<ContinueWithGoogleCallback>,
 ) -> (StatusCode, String) {
   // Exchange the code
   let token = state
@@ -71,8 +71,6 @@ async fn continue_with_google_callback(
     .await
     .unwrap();
 
-  session.insert("user", &body).unwrap();
-
   if let Some(user) = user::Entity::find()
     .filter(user::Column::Email.eq(body.email.clone()))
     .all(&state.db)
@@ -80,13 +78,12 @@ async fn continue_with_google_callback(
     .unwrap()
     .get(0)
   {
-    return (
-      StatusCode::OK,
-      format!(
-        "successfully signed in as {} {}",
-        user.given_name, user.family_name
-      ),
-    );
+    let Ok(token) =
+      UserClaims::new(user.id, user.given_name.clone(), user.family_name.clone()).sign() else {
+        return (StatusCode::INTERNAL_SERVER_ERROR, String::from("could not create session token"));
+      };
+
+    return (StatusCode::OK, token);
   }
 
   let new_user = user::ActiveModel {

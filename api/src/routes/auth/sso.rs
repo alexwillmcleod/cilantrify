@@ -39,7 +39,7 @@ struct ContinueWithSSOBody {
 }
 
 async fn continue_with_sso(
-  State(state): State<Arc<AppState>>,
+  // State(state): State<Arc<AppState>>,
   Json(body): Json<ContinueWithSSOBody>,
 ) -> (StatusCode, String) {
   dotenv().ok();
@@ -104,7 +104,6 @@ struct ContinueWithSSOCallbackBody {
   family_name: String,
 }
 
-#[axum_macros::debug_handler]
 async fn continue_with_sso_callback(
   State(state): State<Arc<AppState>>,
   mut session: WritableSession,

@@ -1,17 +1,41 @@
-import Profile from '../assets/profile.svg';
+import defaultProfilePicture from '../assets/profile.svg';
+import useAuth from '../hooks/useAuth';
+import axios from 'axios';
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 
 export default function Navbar() {
+  const [profilePicture, setProfilePicture] = useState<string>(
+    defaultProfilePicture
+  );
+  const { getHeader } = useAuth();
+
+  useState(() => {
+    const fetchData = async () => {
+      const res = await axios.get('/auth/info', {
+        headers: {
+          Authorization: getHeader(),
+        },
+      });
+      setProfilePicture(res.data['picture'] || profilePicture);
+    };
+    fetchData();
+  });
+
   return (
     <div className="flex flex-row p-10 justify-between sticky items-center">
       <span>
-        <h1 className="font-bold font-display text-accent-green text-2xl sm:text-5xl">
+        <a
+          href="/"
+          className="font-bold font-display text-accent-green text-2xl sm:text-4xl"
+        >
           Cilantrify
-        </h1>
+        </a>
       </span>
       <span>
         <img
-          className="w-12 sm:w-24"
-          src={Profile}
+          className="w-12 sm:w-14 rounded-full"
+          src={profilePicture}
         ></img>
       </span>
     </div>
