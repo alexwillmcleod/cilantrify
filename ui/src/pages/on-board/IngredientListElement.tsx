@@ -4,7 +4,7 @@ import { MouseEventHandler } from 'react';
 export interface IngredientListProps {
   name: string;
   amount: number;
-  measurement: 'g' | 'mL' | 'mg' | 'kg' | 'L';
+  measurement: 'Grams' | 'Millilitres' | 'Milligrams' | 'Kilograms' | 'Litres';
 }
 
 export interface IngredientListElementProps {
@@ -24,8 +24,7 @@ export default function IngredientListElement({
       <span className="flex flex-col">
         <p className="text-accent-blue">{name}</p>
         <p className="text-accent-dark-green">
-          {amount}
-          {measurement}
+          {amount} {measurement}
         </p>
       </span>
       {onDelete && index != undefined ? (

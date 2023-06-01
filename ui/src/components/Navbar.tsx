@@ -20,7 +20,7 @@ export default function Navbar() {
       setProfilePicture(res.data['picture'] || profilePicture);
     };
     fetchData();
-  });
+  }, []);
 
   return (
     <div className="flex flex-row p-10 justify-between sticky items-center">

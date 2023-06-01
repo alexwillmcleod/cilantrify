@@ -40,11 +40,13 @@ async fn main() -> Result<()> {
     .allow_origin("http://localhost:5173".parse::<HeaderValue>().unwrap());
 
   let auth_routes = sea_axum_app::routes::auth::auth_routes();
+  let recipe_routes = sea_axum_app::routes::recipes::recipe_routes();
 
   let app = Router::new()
     .route("/", get(root))
     .route("/cat", get(get_cat_fact))
     .nest("/auth", auth_routes)
+    .nest("/recipe", recipe_routes)
     .layer(
       ServiceBuilder::new()
         .layer(Extension::<Option<UserClaims>>(None))

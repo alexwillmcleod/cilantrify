@@ -9,6 +9,8 @@ import IngredientListElement, {
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
+import axios from 'axios';
+import useAuth from '../../hooks/useAuth';
 
 export default function RecipeCreateIngredients() {
   const navigate = useNavigate();
@@ -30,8 +32,23 @@ export default function RecipeCreateIngredients() {
     }
   }, []);
 
+  const { getHeader } = useAuth();
+
   const handleContinueClick = () => {
     // We are going to submit the recipe here
+    const fetchData = async () => {
+      const res = await axios.post(
+        'recipe',
+        { title: recipeTitle, ingredients, instructions },
+        {
+          headers: {
+            Authorization: getHeader(),
+          },
+        }
+      );
+      console.log(res);
+    };
+    fetchData();
     localStorage.removeItem('ingredients');
     localStorage.removeItem('recipe-title');
     localStorage.removeItem('instructions');
@@ -101,7 +118,10 @@ export default function RecipeCreateIngredients() {
               </ul>
             </span>
           </div>
-          <button className="bg-accent-blue p-1 rounded-md w-fit text-sm text-white">
+          <button
+            onClick={handleContinueClick}
+            className="bg-accent-blue p-1 rounded-md w-fit text-sm text-white"
+          >
             Return to Dashboard
           </button>
         </div>

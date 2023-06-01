@@ -94,13 +94,12 @@ async fn continue_with_google_callback(
     ..Default::default()
   };
   match new_user.insert(&state.db).await {
-    Ok(value) => (
-      StatusCode::OK,
-      format!(
-        "created user with email {} and id {}",
-        &value.email, &value.id
-      ),
-    ),
+    Ok(user) => {
+      let Ok(token) = UserClaims::new(user.id, user.given_name.clone(), user.family_name.clone()).sign() else {
+        return (StatusCode::INTERNAL_SERVER_ERROR, String::from("could not create session token"));
+      };
+      (StatusCode::OK, token)
+    }
     Err(k) => {
       tracing::debug!("server error: {}", k);
       (
