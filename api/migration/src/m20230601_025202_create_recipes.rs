@@ -1,5 +1,8 @@
 use crate::m20230505_014014_create_users::User;
-use sea_orm_migration::prelude::*;
+use sea_orm_migration::{
+  prelude::*,
+  sea_orm::prelude::{ChronoDateTimeUtc, DateTimeUtc},
+};
 
 #[derive(DeriveMigrationName)]
 pub struct Migration;
@@ -26,6 +29,11 @@ impl MigrationTrait for Migration {
             ColumnDef::new(Recipe::Instructions)
               .array(crate::ColumnType::Text)
               .not_null(),
+          )
+          .col(
+            ColumnDef::new(Recipe::CreatedAt)
+              .date_time()
+              .default(DateTimeUtc::default()),
           )
           .col(ColumnDef::new(Recipe::AuthorId).integer().not_null())
           .foreign_key(
@@ -54,7 +62,7 @@ pub enum Recipe {
   Table,
   Id,
   Title,
-  Ingredients,
   Instructions,
   AuthorId,
+  CreatedAt,
 }

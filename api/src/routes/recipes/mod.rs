@@ -7,14 +7,17 @@ use axum::{
   Extension, Router,
 };
 use axum_macros::debug_handler;
-use entity::entities::{ingredient, recipe, sea_orm_active_enums::Measurement};
+use entity::entities::{ingredient, recipe, sea_orm_active_enums::Measurement, user};
 use http::StatusCode;
-use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, Set};
+use sea_orm::{query::*, ActiveModelTrait, ColumnTrait, EntityTrait, QueryOrder, Set};
 use serde::{Deserialize, Serialize};
 use std::{collections::HashSet, sync::Arc};
+use tracing_subscriber::field::debug;
 
 pub fn recipe_routes() -> Router<Arc<AppState>> {
-  Router::new().route("/", post(create))
+  Router::new()
+    .route("/", post(create))
+    .route("/", get(fetch_last))
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -95,4 +98,45 @@ async fn create(
     StatusCode::OK,
     format!("successfully created recipe {}", recipe.title),
   )
+}
+
+#[derive(Deserialize, Serialize)]
+struct FetchedRecipe {
+  title: String,
+  author_first_name: Option<String>,
+  author_last_name: Option<String>,
+  author_profile: Option<String>,
+}
+
+#[debug_handler]
+async fn fetch_last(State(state): State<Arc<AppState>>) -> impl IntoResponse {
+  let cursor = recipe::Entity::find()
+    .find_also_related(user::Entity)
+    .paginate(&state.db, 20);
+  match cursor.fetch().await {
+    Ok(values) => (
+      StatusCode::OK,
+      axum::Json(
+        values
+          .iter()
+          .map(|(recipe, user)| FetchedRecipe {
+            title: recipe.title.clone(),
+            author_first_name: match user {
+              Some(author) => Some(author.given_name.clone()),
+              None => None,
+            },
+            author_last_name: match user {
+              Some(author) => Some(author.family_name.clone()),
+              None => None,
+            },
+            author_profile: match user {
+              Some(author) => author.picture.clone(),
+              None => None,
+            },
+          })
+          .collect::<Vec<FetchedRecipe>>(),
+      ),
+    ),
+    Err(..) => (StatusCode::INTERNAL_SERVER_ERROR, axum::Json(vec![])),
+  }
 }

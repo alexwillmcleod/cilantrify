@@ -6,7 +6,7 @@ const useAuth = () => {
   const sixMonths = 60 * 60 * 24 * 30 * 6;
   const setToken = (newToken: string) => {
     setCookie('api-token', newToken, {
-      sameSite: 'strict',
+      sameSite: 'lax',
       maxAge: sixMonths,
       path: '/',
     });

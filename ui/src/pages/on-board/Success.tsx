@@ -63,7 +63,7 @@ export default function RecipeCreateIngredients() {
           <span className="flex flex-col gap-12 h-full justify-between">
             <div className="flex flex-col gap-1">
               <p className="font-sans text-md text-accent-blue">
-                Your recipe is live
+                Confirm your recipe!
               </p>
               <button className="bg-accent-blue p-1 w-fit rounded-md">
                 <img
