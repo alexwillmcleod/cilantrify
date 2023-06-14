@@ -6,31 +6,17 @@ import IngredientListElement, {
   IngredientListElementProps,
   IngredientListProps,
 } from './IngredientListElement';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import useAuth from '../../hooks/useAuth';
+import { CreateRecipeContext } from '../../main';
+import { FileContent } from 'use-file-picker';
 
-export default function RecipeCreateIngredients() {
+export default function RecipeCreateSuccess() {
   const navigate = useNavigate();
-
-  const [ingredients, setIngredients] = useState<IngredientListProps[]>([]);
-  const [recipeTitle, setRecipeTitle] = useState<string | null>('');
-  const [instructions, setInstructions] = useState<string[]>([]);
-
-  useEffect(() => {
-    // We are going to get any of the values from localStorage
-    if (localStorage.getItem('ingredients')) {
-      setIngredients(JSON.parse(localStorage.getItem('ingredients')!));
-    }
-    if (localStorage.getItem('recipe-title')) {
-      setRecipeTitle(localStorage.getItem('recipe-title'));
-    }
-    if (localStorage.getItem('instructions')) {
-      setInstructions(JSON.parse(localStorage.getItem('instructions')!));
-    }
-  }, []);
+  const createRecipeContext = useContext(CreateRecipeContext);
 
   const { getHeader } = useAuth();
 
@@ -39,7 +25,12 @@ export default function RecipeCreateIngredients() {
     const fetchData = async () => {
       const res = await axios.post(
         'recipe',
-        { title: recipeTitle, ingredients, instructions },
+        {
+          title: createRecipeContext.title,
+          ingredients: createRecipeContext.ingredients,
+          instructions: createRecipeContext.instructions,
+          image: createRecipeContext.image.slice(22),
+        },
         {
           headers: {
             Authorization: getHeader(),
@@ -49,9 +40,6 @@ export default function RecipeCreateIngredients() {
       console.log(res);
     };
     fetchData();
-    localStorage.removeItem('ingredients');
-    localStorage.removeItem('recipe-title');
-    localStorage.removeItem('instructions');
     navigate('/dashboard');
   };
 
@@ -65,12 +53,6 @@ export default function RecipeCreateIngredients() {
               <p className="font-sans text-md text-accent-blue">
                 Confirm your recipe!
               </p>
-              <button className="bg-accent-blue p-1 w-fit rounded-md">
-                <img
-                  src={SendIcon}
-                  width={20}
-                />
-              </button>
             </div>
             <div className="flex flex-col justify-center items-center max-md:hidden">
               <img
@@ -83,24 +65,27 @@ export default function RecipeCreateIngredients() {
         <div className="flex flex-col gap-3">
           <div className="flex flex-col bg-accent-blue-clear w-96 p-4 rounded-md gap-4">
             <h3 className="text-xl font-semibold text-accent-blue text-display">
-              {recipeTitle}
+              {createRecipeContext.title}
             </h3>
+            <img src={createRecipeContext.image} />
             <span>
               <h5 className="text-md font-semibold text-black text-display">
                 Ingredients
               </h5>
               <ul className="list-disc list-outside p-3">
-                {ingredients.map(({ name, amount, measurement }) => (
-                  <li>
-                    <span className="flex flex-row gap-4 text-sm">
-                      <p>{name}</p>
-                      <p className="font-sans text-light-grey">
-                        {amount}
-                        {measurement}
-                      </p>
-                    </span>
-                  </li>
-                ))}
+                {createRecipeContext.ingredients.map(
+                  ({ name, amount, measurement }) => (
+                    <li>
+                      <span className="flex flex-row gap-4 text-sm">
+                        <p>{name}</p>
+                        <p className="font-sans text-light-grey">
+                          {amount}
+                          {measurement}
+                        </p>
+                      </span>
+                    </li>
+                  )
+                )}
               </ul>
             </span>
             <span>
@@ -108,7 +93,7 @@ export default function RecipeCreateIngredients() {
                 Instructions
               </h5>
               <ul className="list-decimal list-outside p-3">
-                {instructions.map((instruction) => (
+                {createRecipeContext.instructions.map((instruction) => (
                   <li>
                     <span className="flex flex-row gap-4 text-sm">
                       <p>{instruction}</p>
@@ -122,7 +107,7 @@ export default function RecipeCreateIngredients() {
             onClick={handleContinueClick}
             className="bg-accent-blue p-1 rounded-md w-fit text-sm text-white"
           >
-            Return to Dashboard
+            I love it!
           </button>
         </div>
       </div>

@@ -81,6 +81,7 @@ struct CatFact {
   fact: String,
   length: usize,
 }
+
 async fn get_cat_fact() -> impl axum::response::IntoResponse {
   let cat_fact: CatFact = CatFact {
     fact: String::from("Cats can be right-pawed or left-pawed."),

@@ -14,6 +14,7 @@ import {
   Dispatch,
   SetStateAction,
 } from 'react';
+import { CreateRecipeContext } from '../../main';
 import { useNavigate } from 'react-router-dom';
 
 export default function RecipeCreateInstructions() {
@@ -22,7 +23,8 @@ export default function RecipeCreateInstructions() {
   const measurementRef = useRef<HTMLSelectElement>(null);
   const navigate = useNavigate();
 
-  const [instructions, setInstructions] = useState<string[]>([]);
+  const createRecipeContext = useContext(CreateRecipeContext);
+
   // const [editorState, setEditorState] = useState<'edit' | 'remove' | 'normal'>(
   //   'normal'
   // );
@@ -33,29 +35,26 @@ export default function RecipeCreateInstructions() {
   //   }
   // };
 
-  useEffect(() => {
-    // We are going to get any of the values from localStorage
-    if (localStorage.getItem('instructions')) {
-      setInstructions(JSON.parse(localStorage.getItem('instructions')!));
-    }
-  }, []);
-
   const handleContinueClick = () => {
     // We are going to save this information in localStorage
     // We are then going to navigate to the next page
-    localStorage.setItem('instructions', JSON.stringify(instructions));
-    navigate('/recipe/create/success');
+    navigate('/recipe/create/images');
   };
 
   const handleAddElement = () => {
     const name = nameRef.current?.value;
     if (!name) return;
-    setInstructions([...instructions, name]);
+    createRecipeContext.setInstructions([
+      ...createRecipeContext.instructions,
+      name,
+    ]);
     nameRef.current.value = '';
   };
 
   const handleDeleteElement = (index: number) => {
-    setInstructions(instructions.filter((_, i) => i != index));
+    createRecipeContext.setInstructions(
+      createRecipeContext.instructions.filter((_, i) => i != index)
+    );
   };
 
   return (
@@ -78,7 +77,7 @@ export default function RecipeCreateInstructions() {
               </span>
             </div>
             <div className="flex flex-col justify-left items-left w-80 overflow-y-scroll overflow-x-hidden max-h-60">
-              {instructions.map((element, index) => (
+              {createRecipeContext.instructions.map((element, index) => (
                 <button
                   className="p-0 bg-transparent text-left m-0 w-fit hover:text-accent-red hover:line-through"
                   onClick={() => handleDeleteElement(index)}
@@ -86,7 +85,11 @@ export default function RecipeCreateInstructions() {
                   {index + 1}. {element}
                 </button>
               ))}
-              {instructions.length == 0 ? <p>No Instructions</p> : <></>}
+              {createRecipeContext.instructions.length == 0 ? (
+                <p>No Instructions</p>
+              ) : (
+                <></>
+              )}
             </div>
             <div className="flex flex-col gap-10">
               <button

@@ -11,7 +11,10 @@ use entity::entities::{ingredient, recipe, sea_orm_active_enums::Measurement, us
 use http::StatusCode;
 use sea_orm::{query::*, ActiveModelTrait, ColumnTrait, EntityTrait, QueryOrder, Set};
 use serde::{Deserialize, Serialize};
-use std::{collections::HashSet, sync::Arc};
+use std::{
+  collections::{HashMap, HashSet},
+  sync::Arc,
+};
 use tracing_subscriber::field::debug;
 
 pub fn recipe_routes() -> Router<Arc<AppState>> {
@@ -32,6 +35,7 @@ struct CreateRecipeBody {
   title: String,
   ingredients: Vec<Ingredient>,
   instructions: Vec<String>,
+  image: Option<String>,
 }
 
 async fn create(
@@ -62,10 +66,47 @@ async fn create(
   }
 
   // Every measurement unit is valid
+
+  let mut url: Option<String> = None;
+  if let Some(img) = body.image {
+    let image_bb_apikey =
+      std::env::var("IMAGE_BB_API_KEY").expect("Missing `IMAGE_BB_API_KEY` env var");
+
+    // Now we've got to upload the image to imagebb
+    let client = reqwest::Client::new();
+
+    // Create request parameters
+    let mut params = HashMap::new();
+    params.insert("image", img);
+    let body = client
+      .post(format!(
+        "https://api.imgbb.com/1/upload?key={}",
+        image_bb_apikey
+      ))
+      .form(&params)
+      .send()
+      .await;
+
+    let Ok(res) = body else {
+    return (StatusCode::INTERNAL_SERVER_ERROR, String::from("could not upload image"))
+  };
+
+    let Ok(data): Result<serde_json::Value, reqwest::Error> = res.json().await else {
+    return (StatusCode::INTERNAL_SERVER_ERROR, String::from("could not upload image"))
+  };
+
+    let Some(url_value): Option<&str> = data["data"]["image"]["url"].as_str() else {
+    return (StatusCode::INTERNAL_SERVER_ERROR, String::from("could not upload image"))
+  };
+
+    url = Some(String::from(url_value));
+  }
+
   let new_recipe = recipe::ActiveModel {
     title: Set(body.title),
     instructions: Set(body.instructions),
     author_id: Set(user.id),
+    picture: Set(url),
     ..Default::default()
   };
 
@@ -103,6 +144,7 @@ async fn create(
 #[derive(Deserialize, Serialize)]
 struct FetchedRecipe {
   title: String,
+  picture: Option<String>,
   author_first_name: Option<String>,
   author_last_name: Option<String>,
   author_profile: Option<String>,
@@ -121,6 +163,7 @@ async fn fetch_last(State(state): State<Arc<AppState>>) -> impl IntoResponse {
           .iter()
           .map(|(recipe, user)| FetchedRecipe {
             title: recipe.title.clone(),
+            picture: recipe.picture.clone(),
             author_first_name: match user {
               Some(author) => Some(author.given_name.clone()),
               None => None,

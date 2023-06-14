@@ -1,7 +1,4 @@
-use sea_orm_migration::{
-  prelude::*,
-  sea_orm::prelude::{DateTimeUtc, TimeDate},
-};
+use sea_orm_migration::prelude::*;
 
 #[derive(DeriveMigrationName)]
 pub struct Migration;
@@ -27,11 +24,6 @@ impl MigrationTrait for Migration {
           .col(ColumnDef::new(User::FamilyName).string().not_null())
           .col(ColumnDef::new(User::GivenName).string().not_null())
           .col(ColumnDef::new(User::Picture).string())
-          .col(
-            ColumnDef::new(User::CreatedAt)
-              .date()
-              .default(DateTimeUtc::default()),
-          )
           .to_owned(),
       )
       .await
@@ -55,5 +47,4 @@ pub enum User {
   FamilyName,
   GivenName,
   Picture,
-  CreatedAt,
 }

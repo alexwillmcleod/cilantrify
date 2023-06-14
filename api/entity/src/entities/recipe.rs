@@ -10,6 +10,7 @@ pub struct Model {
   pub id: i32,
   pub title: String,
   pub instructions: Vec<String>,
+  pub picture: Option<String>,
   pub author_id: i32,
 }
 

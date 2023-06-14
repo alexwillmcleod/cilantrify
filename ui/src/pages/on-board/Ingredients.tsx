@@ -1,43 +1,24 @@
 import PlusIcon from '../../assets/plus-icon.svg';
+import { useContext } from 'react';
 import Info from '../../assets/info.svg';
 import IngredientListElement, {
-  IngredientListElementProps,
   IngredientListProps,
 } from './IngredientListElement';
-import {
-  useState,
-  useRef,
-  useContext,
-  useEffect,
-  Dispatch,
-  SetStateAction,
-} from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { CreateRecipeContext } from '../../main';
 
 export default function RecipeCreateIngredients() {
-  const recipeTitleRef = useRef<HTMLInputElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
   const amountRef = useRef<HTMLInputElement>(null);
   const measurementRef = useRef<HTMLSelectElement>(null);
   const navigate = useNavigate();
 
-  const [ingredients, setIngredients] = useState<IngredientListProps[]>([]);
-
-  useEffect(() => {
-    // We are going to get any of the values from localStorage
-    if (localStorage.getItem('ingredients')) {
-      setIngredients(JSON.parse(localStorage.getItem('ingredients')!));
-    }
-    if (localStorage.getItem('recipe-title')) {
-      recipeTitleRef.current!.value = localStorage.getItem('recipe-title')!;
-    }
-  }, []);
+  const createRecipeContext = useContext(CreateRecipeContext);
 
   const handleContinueClick = () => {
     // We are going to save this information in localStorage
     // We are then going to navigate to the next page
-    localStorage.setItem('ingredients', JSON.stringify(ingredients));
-    localStorage.setItem('recipe-title', recipeTitleRef.current!.value);
     navigate('/recipe/create/instructions');
   };
 
@@ -59,8 +40,8 @@ export default function RecipeCreateIngredients() {
       `creating element with name ${name}, amount ${amount} ${measurement}`
     );
     if (!name || !amount || !measurement) return;
-    setIngredients([
-      ...ingredients,
+    createRecipeContext.setIngredients([
+      ...createRecipeContext.ingredients,
       {
         name: name!,
         amount: amount!,
@@ -72,7 +53,9 @@ export default function RecipeCreateIngredients() {
   };
 
   const handleDeleteElement = (index: number) => {
-    setIngredients(ingredients.filter((_, i) => i != index));
+    createRecipeContext.setIngredients(
+      createRecipeContext.ingredients.filter((_, i) => i != index)
+    );
   };
 
   return (
@@ -88,7 +71,8 @@ export default function RecipeCreateIngredients() {
             </p>
             <input
               className="w-80 px-4 py-2 bg-accent-blue-clear rounded-lg"
-              ref={recipeTitleRef}
+              value={createRecipeContext.title}
+              onChange={(e) => createRecipeContext.setTitle(e.target.value)}
             />
           </span>
           <span className="flex flex-col gap-7">
@@ -126,14 +110,18 @@ export default function RecipeCreateIngredients() {
               </span>
             </div>
             <div className="flex flex-col bg-accent-blue-clear p-4 rounded-xl w-80 gap-2 overflow-y-scroll overflow-x-hidden max-h-60">
-              {ingredients.map((element, index) => (
+              {createRecipeContext.ingredients.map((element, index) => (
                 <IngredientListElement
                   {...element}
                   index={index}
                   onDelete={handleDeleteElement}
                 />
               ))}
-              {ingredients.length == 0 ? <p>No Ingredients</p> : <></>}
+              {createRecipeContext.ingredients.length == 0 ? (
+                <p>No Ingredients</p>
+              ) : (
+                <></>
+              )}
             </div>
             <button
               onClick={handleContinueClick}

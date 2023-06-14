@@ -2,14 +2,23 @@ import LetsGoImage from '../assets/lets-go.svg';
 import { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import useAuth from '../hooks/useAuth';
+import axios from 'axios';
 
 export default function SignIn() {
-  const { getToken } = useAuth();
+  const { getHeader } = useAuth();
   const navigate = useNavigate();
   useEffect(() => {
-    if (getToken()) {
-      navigate('/dashboard');
-    }
+    const fetchUser = async () => {
+      const res = await axios.get('/auth/info', {
+        headers: {
+          Authorization: getHeader(),
+        },
+      });
+      if (res.data != null) {
+        navigate('/dashboard');
+      }
+    };
+    fetchUser();
   });
 
   return (

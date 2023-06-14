@@ -4,9 +4,10 @@ import useAuth from '../hooks/useAuth';
 
 interface Recipe {
   title: string;
+  picture?: string;
   author_first_name: string;
   author_last_name: string;
-  author_profile: string;
+  author_profile?: string;
 }
 
 export default function Dashboard() {
@@ -38,6 +39,7 @@ export default function Dashboard() {
         {recipes.map((element, index) => (
           <div key={index}>
             <p>{element.title}</p>
+            <img src={element.picture} />
             <p>
               {element.author_first_name} {element.author_last_name}
             </p>
