@@ -2,14 +2,9 @@
 
 There's not really a way to share recipes online without sharing the link to someone's wordpress site covered in ads. It's difficult for everyday people to upload their recipes, save recipes they care about and follow people they are interested in. Cilantrify is a recipe sharing web app built with React, Tailwind, Rust, Axum, and SeaORM.
 
-<style>
-img {
-  border-radius: 1vmin;
-}
-</style>
-<img src="./screenshots/Screenshot%202023-06-17%20111555.png">
-<img src="./screenshots/Screenshot%202023-06-17%20111847.png">
-<img src="./screenshots/Screenshot%202023-06-17%20112054.png">
+<img style="border-radius: 1vmin" src="./screenshots/Screenshot%202023-06-17%20111555.png">
+<img style="border-radius: 1vmin" src="./screenshots/Screenshot%202023-06-17%20111847.png">
+<img style="border-radius: 1vmin" src="./screenshots/Screenshot%202023-06-17%20112054.png">
 
 ### Environment Variables
 
