@@ -4,7 +4,7 @@ There's not really a way to share recipes online without sharing the link to som
 
 <style>
 img {
-  border-radius: 3vmin;
+  border-radius: 1vmin;
 }
 </style>
 <img src="./screenshots/Screenshot%202023-06-17%20111555.png">
