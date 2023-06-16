@@ -13,6 +13,7 @@ import axios from 'axios';
 import useAuth from '../../hooks/useAuth';
 import { CreateRecipeContext } from '../../main';
 import { FileContent } from 'use-file-picker';
+import NotFoundImage from '../../assets/notfound.svg';
 
 export default function RecipeCreateSuccess() {
   const navigate = useNavigate();
@@ -29,7 +30,7 @@ export default function RecipeCreateSuccess() {
           title: createRecipeContext.title,
           ingredients: createRecipeContext.ingredients,
           instructions: createRecipeContext.instructions,
-          image: createRecipeContext.image.slice(22),
+          image: createRecipeContext.image.split(',')[1],
         },
         {
           headers: {
@@ -67,7 +68,17 @@ export default function RecipeCreateSuccess() {
             <h3 className="text-xl font-semibold text-accent-blue text-display">
               {createRecipeContext.title}
             </h3>
-            <img src={createRecipeContext.image} />
+            {createRecipeContext.image ? (
+              <img
+                className="aspect-video object-cover rounded-md"
+                src={createRecipeContext.image}
+              />
+            ) : (
+              <img
+                className="aspect-video object-fit rounded-md"
+                src={NotFoundImage}
+              />
+            )}
             <span>
               <h5 className="text-md font-semibold text-black text-display">
                 Ingredients
@@ -105,7 +116,7 @@ export default function RecipeCreateSuccess() {
           </div>
           <button
             onClick={handleContinueClick}
-            className="bg-accent-blue p-1 rounded-md w-fit text-sm text-white"
+            className="bg-accent-blue py-1 px-3 rounded-md w-fit text-sm text-white"
           >
             I love it!
           </button>

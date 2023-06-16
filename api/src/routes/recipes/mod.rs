@@ -1,15 +1,17 @@
 use crate::routes::auth::jwt::UserClaims;
 use crate::AppState;
 use axum::{
-  extract::{Json, State},
-  response::IntoResponse,
+  body::Full,
+  extract::{Json, Query, State},
+  response::{IntoResponse, Response},
   routing::{get, post},
   Extension, Router,
 };
 use axum_macros::debug_handler;
 use entity::entities::{ingredient, recipe, sea_orm_active_enums::Measurement, user};
 use http::StatusCode;
-use sea_orm::{query::*, ActiveModelTrait, ColumnTrait, EntityTrait, QueryOrder, Set};
+use reqwest::ResponseBuilderExt;
+use sea_orm::{query::*, ActiveModelTrait, ColumnTrait, EntityTrait, ModelTrait, QueryOrder, Set};
 use serde::{Deserialize, Serialize};
 use std::{
   collections::{HashMap, HashSet},
@@ -20,7 +22,8 @@ use tracing_subscriber::field::debug;
 pub fn recipe_routes() -> Router<Arc<AppState>> {
   Router::new()
     .route("/", post(create))
-    .route("/", get(fetch_last))
+    .route("/", get(fetch))
+    .route("/page", get(fetch_last))
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -36,6 +39,81 @@ struct CreateRecipeBody {
   ingredients: Vec<Ingredient>,
   instructions: Vec<String>,
   image: Option<String>,
+}
+
+#[derive(Serialize, Deserialize)]
+struct RecipeFetchQuery {
+  recipe_id: i32,
+}
+
+#[derive(Serialize, Deserialize)]
+struct FullFetchedRecipe {
+  title: String,
+  picture: Option<String>,
+  author_first_name: Option<String>,
+  author_last_name: Option<String>,
+  author_profile: Option<String>,
+  instructions: Vec<String>,
+  ingredients: Vec<Ingredient>,
+}
+
+#[debug_handler]
+async fn fetch(
+  query: Query<RecipeFetchQuery>,
+  State(state): State<Arc<AppState>>,
+) -> impl IntoResponse {
+  let recipe_id = query.recipe_id;
+  let recipe = recipe::Entity::find_by_id(recipe_id)
+    .find_also_related(user::Entity)
+    .one(&state.db)
+    .await;
+
+  let Ok(recipe) = recipe else {
+    tracing::debug!("Failed to fetch recipe");
+    return (StatusCode::INTERNAL_SERVER_ERROR, axum::Json(None));
+  };
+  let Some(recipe) = recipe else {
+    return (StatusCode::NOT_FOUND, axum::Json(None));
+  };
+
+  let ingredients = recipe
+    .0
+    .find_related(ingredient::Entity)
+    .all(&state.db)
+    .await;
+
+  let Ok(ingredients) = ingredients else {
+    tracing::debug!("Failed to fetch ingredients");
+    return (StatusCode::INTERNAL_SERVER_ERROR, axum::Json(None))
+  };
+
+  let res = FullFetchedRecipe {
+    title: recipe.0.title,
+    picture: recipe.0.picture,
+    author_first_name: match &recipe.1 {
+      Some(user) => Some(user.given_name.clone()),
+      None => None,
+    },
+    author_last_name: match &recipe.1 {
+      Some(user) => Some(user.family_name.clone()),
+      None => None,
+    },
+    author_profile: match &recipe.1 {
+      Some(user) => user.picture.clone(),
+      None => None,
+    },
+    instructions: recipe.0.instructions,
+    ingredients: ingredients
+      .iter()
+      .map(|element| Ingredient {
+        name: element.name.clone(),
+        amount: element.amount.clone(),
+        measurement: element.measurement.to_string(),
+      })
+      .collect::<Vec<Ingredient>>(),
+  };
+
+  (StatusCode::OK, axum::Json(Some(res)))
 }
 
 async fn create(
@@ -143,6 +221,7 @@ async fn create(
 
 #[derive(Deserialize, Serialize)]
 struct FetchedRecipe {
+  id: i32,
   title: String,
   picture: Option<String>,
   author_first_name: Option<String>,
@@ -162,6 +241,7 @@ async fn fetch_last(State(state): State<Arc<AppState>>) -> impl IntoResponse {
         values
           .iter()
           .map(|(recipe, user)| FetchedRecipe {
+            id: recipe.id.clone(),
             title: recipe.title.clone(),
             picture: recipe.picture.clone(),
             author_first_name: match user {

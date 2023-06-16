@@ -18,7 +18,7 @@ import { CreateRecipeContext } from '../../main';
 import { useNavigate } from 'react-router-dom';
 
 export default function RecipeCreateInstructions() {
-  const nameRef = useRef<HTMLInputElement>(null);
+  const nameRef = useRef<HTMLTextAreaElement>(null);
   const amountRef = useRef<HTMLInputElement>(null);
   const measurementRef = useRef<HTMLSelectElement>(null);
   const navigate = useNavigate();
@@ -67,8 +67,8 @@ export default function RecipeCreateInstructions() {
           <span className="flex flex-col gap-7">
             <div className="flex flex-col gap-4">
               <span className="flex flex-row gap-2 ">
-                <input
-                  className="w-80 px-4 py-2 bg-accent-blue-clear rounded-lg"
+                <textarea
+                  className="max-w-2xl w-96 max-h-96 h-48 px-4 py-2 bg-accent-blue-clear rounded-lg resize"
                   ref={nameRef}
                 />
                 <button onClick={handleAddElement}>
@@ -76,21 +76,7 @@ export default function RecipeCreateInstructions() {
                 </button>
               </span>
             </div>
-            <div className="flex flex-col justify-left items-left w-80 overflow-y-scroll overflow-x-hidden max-h-60">
-              {createRecipeContext.instructions.map((element, index) => (
-                <button
-                  className="p-0 bg-transparent text-left m-0 w-fit hover:text-accent-red hover:line-through"
-                  onClick={() => handleDeleteElement(index)}
-                >
-                  {index + 1}. {element}
-                </button>
-              ))}
-              {createRecipeContext.instructions.length == 0 ? (
-                <p>No Instructions</p>
-              ) : (
-                <></>
-              )}
-            </div>
+
             <div className="flex flex-col gap-10">
               <button
                 onClick={handleContinueClick}
@@ -101,11 +87,22 @@ export default function RecipeCreateInstructions() {
             </div>
           </span>
         </div>
-        <div className="flex flex-col justify-center items-center max-md:hidden">
-          <img
-            src={FlowersPerson}
-            width={400}
-          />
+        <div className="flex flex-col items-center max-md:hidden">
+          {createRecipeContext.instructions.length == 0 ? (
+            <p>No Instructions</p>
+          ) : (
+            <></>
+          )}
+          <div className="flex flex-col justify-left items-left w-96 overflow-y-auto overflow-x-hidden max-h-80 gap-4">
+            {createRecipeContext.instructions.map((element, index) => (
+              <button
+                className="p-0 bg-transparent text-left m-0 w-fit hover:text-accent-red hover:line-through"
+                onClick={() => handleDeleteElement(index)}
+              >
+                {index + 1}. {element}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     </div>

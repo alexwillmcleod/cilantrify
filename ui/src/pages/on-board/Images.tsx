@@ -25,7 +25,9 @@ export default function OnBoardImages() {
   });
 
   const handleContinueClick = () => {
-    createRecipeContext.setImage(filesContent[0].content);
+    if (filesContent.length > 0 && filesContent[0].content) {
+      createRecipeContext.setImage(filesContent[0].content);
+    }
     navigate('/recipe/create/success');
   };
 

@@ -1,5 +1,4 @@
 import CrossIcon from '../../assets/cross-icon.svg';
-import { useContext } from 'react';
 
 export interface IngredientListProps {
   name: string;

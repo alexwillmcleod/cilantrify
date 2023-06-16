@@ -8,6 +8,7 @@ export default function Navbar() {
   const [profilePicture, setProfilePicture] = useState<string>(
     defaultProfilePicture
   );
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const { getHeader } = useAuth();
 
   useState(() => {
@@ -18,6 +19,7 @@ export default function Navbar() {
         },
       });
       setProfilePicture(res.data['picture'] || profilePicture);
+      if (res.data != null) setIsLoggedIn(true);
     };
     fetchData();
   }, []);
@@ -32,12 +34,12 @@ export default function Navbar() {
           Cilantrify
         </a>
       </span>
-      <span>
+      <a href="/dashboard">
         <img
           className="w-12 sm:w-14 rounded-full"
           src={profilePicture}
         ></img>
-      </span>
+      </a>
     </div>
   );
 }

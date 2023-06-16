@@ -11,7 +11,7 @@ import Index from './pages';
 import Navbar from './components/Navbar';
 import SignIn from './pages/SignIn';
 import SignInGoogle from './pages/SignInGoogle';
-import Dashboard from './pages/Dashboard';
+import Dashboard from './pages/dashboard/Dashboard';
 import { CookiesProvider } from 'react-cookie';
 import OnBoardIngredients from './pages/on-board/Ingredients';
 import OnBoardInstructions from './pages/on-board/Instructions';
@@ -23,6 +23,7 @@ import {
 } from './pages/on-board/IngredientListElement';
 import { FileContent } from 'use-file-picker';
 import { Redirect } from 'react-router-dom';
+import ViewRecipe from './pages/ViewRecipe';
 
 interface CreateRecipeState {
   instructions: string[];
@@ -68,6 +69,10 @@ const router = createBrowserRouter([
   {
     path: '/recipe',
     children: [
+      {
+        path: ':recipe_id',
+        element: <ViewRecipe />,
+      },
       {
         path: 'create',
         children: [

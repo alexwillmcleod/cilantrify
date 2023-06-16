@@ -36,6 +36,7 @@ pub fn auth_routes() -> Router<Arc<AppState>> {
     .nest("/sso", sso_routes())
 }
 
+
 #[debug_handler]
 async fn user_info(
   Extension(user_claims): Extension<Option<UserClaims>>,
