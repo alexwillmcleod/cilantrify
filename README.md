@@ -2,9 +2,9 @@
 
 Recipe sharing web app built with React ⚛️ and Rust 🦀
 
-<img src="./Screenshot%202023-06-17%20111555.png">
-<img src="./Screenshot%202023-06-17%20111847.png">
-<img src="./Screenshot%202023-06-17%20112054.png">
+<img src="./screenshots/Screenshot%202023-06-17%20111555.png">
+<img src="./screenshots/Screenshot%202023-06-17%20111847.png">
+<img src="./screenshots/Screenshot%202023-06-17%20112054.png">
 
 ### Environment Variables
 
