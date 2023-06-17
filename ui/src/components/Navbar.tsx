@@ -1,7 +1,7 @@
 import defaultProfilePicture from '../assets/profile.svg';
 import useAuth from '../hooks/useAuth';
 import axios from 'axios';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function Navbar() {
   const [profilePicture, setProfilePicture] = useState<string>(
@@ -10,7 +10,7 @@ export default function Navbar() {
   // const [isLoggedIn, setIsLoggedIn] = useState(false);
   const { getHeader } = useAuth();
 
-  useState(() => {
+  useEffect(() => {
     const fetchData = async () => {
       const res = await axios.get('/auth/info', {
         headers: {
