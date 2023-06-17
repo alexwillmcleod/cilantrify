@@ -2,7 +2,7 @@
 members = [".", "entity", "migration"]
 
 [package]
-name = "sea-axum-app"
+name = "cilantrify-api"
 version = "0.1.0"
 edition = "2021"
 

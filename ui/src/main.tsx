@@ -47,7 +47,8 @@ export const CreateRecipeContext = createContext<CreateRecipeState>({
   setImage: () => {},
 });
 
-axios.defaults.baseURL = 'http://localhost/';
+axios.defaults.baseURL = import.meta.env.VITE_API_URL as string;
+console.log(`Accessing API from ${axios.defaults.baseURL}`);
 
 const router = createBrowserRouter([
   {

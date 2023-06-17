@@ -6,16 +6,16 @@ use axum::{
   routing::{get, post},
   Extension, Router,
 };
+use cilantrify_api::{
+  middleware::auth::maybe_auth,
+  routes::auth::{jwt::UserClaims, User},
+  AppState,
+};
 use dotenvy::dotenv;
 use entity::entities::user;
 use http::{
   header::{self, AUTHORIZATION, CONTENT_TYPE},
   HeaderValue, Method, Request, Response,
-};
-use sea_axum_app::{
-  middleware::auth::maybe_auth,
-  routes::auth::{jwt::UserClaims, User},
-  AppState,
 };
 use sea_orm::{ActiveModelTrait, Set};
 use serde::{Deserialize, Serialize};
@@ -39,8 +39,8 @@ async fn main() -> Result<()> {
     .allow_headers([AUTHORIZATION, CONTENT_TYPE])
     .allow_origin("http://localhost:5173".parse::<HeaderValue>().unwrap());
 
-  let auth_routes = sea_axum_app::routes::auth::auth_routes();
-  let recipe_routes = sea_axum_app::routes::recipes::recipe_routes();
+  let auth_routes = cilantrify_api::routes::auth::auth_routes();
+  let recipe_routes = cilantrify_api::routes::recipes::recipe_routes();
 
   let app = Router::new()
     .route("/", get(root))
