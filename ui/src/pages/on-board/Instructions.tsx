@@ -16,12 +16,14 @@ import {
 } from 'react';
 import { CreateRecipeContext } from '../../main';
 import { useNavigate } from 'react-router-dom';
+import ContinueButton from '../../components/ContinueButton';
 
 export default function RecipeCreateInstructions() {
   const nameRef = useRef<HTMLTextAreaElement>(null);
   const amountRef = useRef<HTMLInputElement>(null);
   const measurementRef = useRef<HTMLSelectElement>(null);
   const navigate = useNavigate();
+  const [isErrorVisible, setIsErrorVisible] = useState(false);
 
   const createRecipeContext = useContext(CreateRecipeContext);
 
@@ -38,7 +40,15 @@ export default function RecipeCreateInstructions() {
   const handleContinueClick = () => {
     // We are going to save this information in localStorage
     // We are then going to navigate to the next page
+    if (createRecipeContext.instructions.length == 0) {
+      setIsErrorVisible(true);
+      return;
+    }
     navigate('/recipe/create/images');
+  };
+
+  const handleReturnClick = () => {
+    navigate('../ingredients');
   };
 
   const handleAddElement = () => {
@@ -66,28 +76,32 @@ export default function RecipeCreateInstructions() {
           </p>
           <span className="flex flex-col gap-7">
             <div className="flex flex-col gap-4">
-              <span className="flex flex-row gap-2 ">
+              <span className="flex flex-col gap-2 ">
                 <textarea
                   className="max-w-2xl w-96 max-h-96 h-48 px-4 py-2 bg-accent-blue-clear rounded-lg resize"
                   ref={nameRef}
                 />
-                <button onClick={handleAddElement}>
-                  <img src={PlusIcon} />
-                </button>
               </span>
             </div>
 
             <div className="flex flex-col gap-10">
-              <button
+              <ContinueButton
+                errorMessage="You must add at least one instruction"
                 onClick={handleContinueClick}
-                className="w-fit px-4 py-2 bg-accent-blue text-white rounded-xl"
+                isErrorVisible={isErrorVisible}
+                onReturn={handleReturnClick}
               >
-                Continue
-              </button>
+                <button
+                  onClick={handleAddElement}
+                  className="bg-accent-green text-white px-4 py-2 rounded-xl h-fit"
+                >
+                  Add
+                </button>
+              </ContinueButton>
             </div>
           </span>
         </div>
-        <div className="flex flex-col items-center max-md:hidden">
+        <div className="flex flex-col items-center ">
           {createRecipeContext.instructions.length == 0 ? (
             <p>No Instructions</p>
           ) : (

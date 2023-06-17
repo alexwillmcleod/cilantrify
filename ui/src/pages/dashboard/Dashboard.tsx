@@ -41,7 +41,7 @@ export default function Dashboard() {
   // We need to fetch the last 100 newest recipes
 
   return (
-    <div className="flex flex-col items-center px-10 gap-10">
+    <div className="flex flex-col items-center px-10 gap-10 pb-32">
       <h2 className="font-bold text-display text-4xl text-accent-blue">
         Dashboard
       </h2>

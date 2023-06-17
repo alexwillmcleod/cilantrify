@@ -7,18 +7,31 @@ import IngredientListElement, {
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CreateRecipeContext } from '../../main';
+import ContinueButton from '../../components/ContinueButton';
 
 export default function RecipeCreateIngredients() {
   const nameRef = useRef<HTMLInputElement>(null);
   const amountRef = useRef<HTMLInputElement>(null);
   const measurementRef = useRef<HTMLSelectElement>(null);
   const navigate = useNavigate();
+  const [isErrorVisible, setIsErrorVisible] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const createRecipeContext = useContext(CreateRecipeContext);
 
   const handleContinueClick = () => {
     // We are going to save this information in localStorage
     // We are then going to navigate to the next page
+    if (createRecipeContext.title == '') {
+      setErrorMessage('You must have a title');
+      setIsErrorVisible(true);
+      return;
+    }
+    if (createRecipeContext.ingredients.length == 0) {
+      setErrorMessage('You must add at least one ingredient');
+      setIsErrorVisible(true);
+      return;
+    }
     navigate('/recipe/create/instructions');
   };
 
@@ -123,12 +136,11 @@ export default function RecipeCreateIngredients() {
                 <></>
               )}
             </div>
-            <button
+            <ContinueButton
               onClick={handleContinueClick}
-              className="w-fit px-4 py-2 bg-accent-blue text-white rounded-xl"
-            >
-              Continue
-            </button>
+              isErrorVisible={isErrorVisible}
+              errorMessage={errorMessage}
+            />
           </span>
         </div>
         <div className="flex flex-col justify-center items-center max-md:hidden">

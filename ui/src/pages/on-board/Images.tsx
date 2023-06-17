@@ -3,11 +3,13 @@ import AddImageIcon from '../../assets/add-image-icon.svg';
 import { useFilePicker } from 'use-file-picker';
 import { useNavigate } from 'react-router';
 import { CreateRecipeContext } from '../../main';
-import { useContext } from 'react';
+import { useContext, useState } from 'react';
+import ContinueButton from '../../components/ContinueButton';
 
 export default function OnBoardImages() {
   const navigate = useNavigate();
   const createRecipeContext = useContext(CreateRecipeContext);
+  const [isErrorVisible, setIsErrorVisible] = useState(false);
   const [openFileSelector, { filesContent, loading, errors }] = useFilePicker({
     readAs: 'DataURL',
     accept: 'image/*',
@@ -27,8 +29,13 @@ export default function OnBoardImages() {
   const handleContinueClick = () => {
     if (filesContent.length > 0 && filesContent[0].content) {
       createRecipeContext.setImage(filesContent[0].content);
+      return navigate('/recipe/create/success');
     }
-    navigate('/recipe/create/success');
+    setIsErrorVisible(true);
+  };
+
+  const handleReturnClick = () => {
+    return navigate('../instructions');
   };
 
   return (
@@ -46,14 +53,18 @@ export default function OnBoardImages() {
               src={AddImageIcon}
               className="w-20 h-20"
             />
-            <p className="font-bold text-accent-blue">Add some photos</p>
+            <p className="font-bold text-accent-blue">
+              {filesContent.length > 0 && filesContent[0].name
+                ? filesContent[0].name
+                : 'Add some photos'}
+            </p>
           </button>
-          <button
+          <ContinueButton
             onClick={handleContinueClick}
-            className="w-fit px-4 py-2 bg-accent-blue text-white rounded-xl"
-          >
-            Continue
-          </button>
+            isErrorVisible={isErrorVisible}
+            errorMessage="You must add a photo"
+            onReturn={handleReturnClick}
+          />
         </div>
         <div className="flex flex-col justify-center items-center max-md:hidden">
           <img

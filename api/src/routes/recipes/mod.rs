@@ -130,11 +130,18 @@ async fn create(
 
   // Let's check every measurement string is valid
   for ingredient in &body.ingredients {
-    if !["Grams", "Milligrams", "Kilograms", "Millilitres", "Litres"]
-      .iter()
-      .map(|&x| x.to_string())
-      .collect::<HashSet<String>>()
-      .contains(&ingredient.measurement)
+    if ![
+      "Grams",
+      "Milligrams",
+      "Kilograms",
+      "Millilitres",
+      "Litres",
+      "Units",
+    ]
+    .iter()
+    .map(|&x| x.to_string())
+    .collect::<HashSet<String>>()
+    .contains(&ingredient.measurement)
     {
       return (
         StatusCode::BAD_REQUEST,
@@ -203,6 +210,7 @@ async fn create(
         value if value == String::from("Kilogram") => Measurement::Kilograms,
         value if value == String::from("Litres") => Measurement::Litres,
         value if value == String::from("Millilitres") => Measurement::Millilitres,
+        value if value == String::from("Units") => Measurement::Units,
         _ => return (StatusCode::INTERNAL_SERVER_ERROR, "".to_string()),
       }),
       recipe_id: Set(recipe.id),

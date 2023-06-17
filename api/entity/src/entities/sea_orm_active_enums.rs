@@ -16,4 +16,6 @@ pub enum Measurement {
   Milligrams,
   #[sea_orm(string_value = "millilitres")]
   Millilitres,
+  #[sea_orm(string_value = "units")]
+  Units,
 }
