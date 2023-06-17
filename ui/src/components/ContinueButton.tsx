@@ -1,6 +1,6 @@
 import { MouseEventHandler } from 'react';
 import BackArrowIcon from '../assets/chevron-left.svg';
-import DangerIcon from '../assets/danger.svg';
+// import DangerIcon from '../assets/danger.svg';
 
 interface ContinueButtonProps {
   isErrorVisible: boolean;

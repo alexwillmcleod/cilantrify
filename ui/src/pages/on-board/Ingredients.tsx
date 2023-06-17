@@ -1,10 +1,8 @@
 import PlusIcon from '../../assets/plus-icon.svg';
 import { useContext } from 'react';
 import Info from '../../assets/info.svg';
-import IngredientListElement, {
-  IngredientListProps,
-} from './IngredientListElement';
-import { useState, useRef, useEffect } from 'react';
+import IngredientListElement from /*IngredientListProps*/ './IngredientListElement';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CreateRecipeContext } from '../../main';
 import ContinueButton from '../../components/ContinueButton';

@@ -1,14 +1,13 @@
 import defaultProfilePicture from '../assets/profile.svg';
 import useAuth from '../hooks/useAuth';
 import axios from 'axios';
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
 
 export default function Navbar() {
   const [profilePicture, setProfilePicture] = useState<string>(
     defaultProfilePicture
   );
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  // const [isLoggedIn, setIsLoggedIn] = useState(false);
   const { getHeader } = useAuth();
 
   useState(() => {
@@ -19,7 +18,7 @@ export default function Navbar() {
         },
       });
       setProfilePicture(res.data['picture'] || profilePicture);
-      if (res.data != null) setIsLoggedIn(true);
+      // if (res.data != null) setIsLoggedIn(true);
     };
     fetchData();
   }, []);

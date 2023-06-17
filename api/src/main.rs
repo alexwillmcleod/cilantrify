@@ -55,8 +55,10 @@ async fn main() -> Result<()> {
     .layer(cors)
     .with_state(Arc::new(AppState::new().await?));
 
-  let addr = SocketAddr::from(([127, 0, 0, 1], 80));
-  tracing::debug!("Listening on port {}", 80);
+  let port: u16 = std::env::var("PORT").unwrap().parse().unwrap();
+
+  let addr = SocketAddr::from(([0, 0, 0, 0], port));
+  tracing::debug!("Listening on port {}", port);
   axum::Server::bind(&addr)
     .serve(app.into_make_service())
     .await?;

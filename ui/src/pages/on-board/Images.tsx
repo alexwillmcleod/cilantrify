@@ -10,21 +10,22 @@ export default function OnBoardImages() {
   const navigate = useNavigate();
   const createRecipeContext = useContext(CreateRecipeContext);
   const [isErrorVisible, setIsErrorVisible] = useState(false);
-  const [openFileSelector, { filesContent, loading, errors }] = useFilePicker({
-    readAs: 'DataURL',
-    accept: 'image/*',
-    multiple: false,
-    limitFilesConfig: {
-      max: 1,
-    },
-    maxFileSize: 50,
-    imageSizeRestrictions: {
-      maxHeight: 2160,
-      maxWidth: 3840,
-      minHeight: 300,
-      minWidth: 384,
-    },
-  });
+  const [openFileSelector, { filesContent /*loading, errors*/ }] =
+    useFilePicker({
+      readAs: 'DataURL',
+      accept: 'image/*',
+      multiple: false,
+      limitFilesConfig: {
+        max: 1,
+      },
+      maxFileSize: 50,
+      imageSizeRestrictions: {
+        maxHeight: 2160,
+        maxWidth: 3840,
+        minHeight: 300,
+        minWidth: 384,
+      },
+    });
 
   const handleContinueClick = () => {
     if (filesContent.length > 0 && filesContent[0].content) {

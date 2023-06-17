@@ -1,18 +1,18 @@
-import PlusIcon from '../../assets/plus-icon.svg';
+// import PlusIcon from '../../assets/plus-icon.svg';
 import WorldArt from '../../assets/world.svg';
-import SendIcon from '../../assets/send.svg';
-import Info from '../../assets/info.svg';
-import IngredientListElement, {
-  IngredientListElementProps,
-  IngredientListProps,
-} from './IngredientListElement';
-import { useState, useRef, useEffect, useContext } from 'react';
+// import SendIcon from '../../assets/send.svg';
+// import Info from '../../assets/info.svg';
+// import IngredientListElement, {
+// IngredientListElementProps,
+// IngredientListProps,
+// } from './IngredientListElement';
+import { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Link } from 'react-router-dom';
+// import { Link } from 'react-router-dom';
 import axios from 'axios';
 import useAuth from '../../hooks/useAuth';
 import { CreateRecipeContext } from '../../main';
-import { FileContent } from 'use-file-picker';
+// import { FileContent } from 'use-file-picker';
 import NotFoundImage from '../../assets/notfound.svg';
 
 export default function RecipeCreateSuccess() {

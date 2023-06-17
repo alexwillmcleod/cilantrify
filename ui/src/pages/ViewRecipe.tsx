@@ -1,8 +1,8 @@
 import NotFoundImage from '../assets/notfound.svg';
 import { useParams } from 'react-router';
-import useAuth from '../hooks/useAuth';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
+import { IngredientListProps } from './on-board/IngredientListElement';
 
 export default function ViewRecipe() {
   const { recipe_id } = useParams();
@@ -42,7 +42,7 @@ export default function ViewRecipe() {
             <h4 className="font-bold text-accent-blue text-2xl">Ingredients</h4>
             <ul className="flex flex-col w-fit list-disc list-inside text-lg gap-1">
               {recipe.ingredients ? (
-                recipe.ingredients.map((element, index) => (
+                recipe.ingredients.map((element: IngredientListProps) => (
                   <li>{element.name}</li>
                 ))
               ) : (
@@ -56,7 +56,7 @@ export default function ViewRecipe() {
             </h4>
             <ol className="flex flex-col gap-8 text-lg list-decimal list-inside">
               {recipe.instructions ? (
-                recipe.instructions.map((element, index) => <li>{element}</li>)
+                recipe.instructions.map((element: string) => <li>{element}</li>)
               ) : (
                 <></>
               )}

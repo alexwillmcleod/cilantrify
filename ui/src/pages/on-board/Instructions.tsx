@@ -1,27 +1,18 @@
-import PlusIcon from '../../assets/plus-icon.svg';
-import Info from '../../assets/info.svg';
-import CrossIcon from '../../assets/cross-icon.svg';
-import EditIcon from '../../assets/edit.svg';
-import FlowersPerson from '../../assets/flowers.svg';
-import IngredientListElement, {
-  IngredientListProps,
-} from './IngredientListElement';
-import {
-  useState,
-  useRef,
-  useContext,
-  useEffect,
-  Dispatch,
-  SetStateAction,
-} from 'react';
+// import PlusIcon from '../../assets/plus-icon.svg';
+// import Info from '../../assets/info.svg';
+// import CrossIcon from '../../assets/cross-icon.svg';
+// import EditIcon from '../../assets/edit.svg';
+// import FlowersPerson from '../../assets/flowers.svg';
+// import IngredientListElement, {
+// IngredientListProps,
+// } from './IngredientListElement';
+import { useState, useRef, useContext } from 'react';
 import { CreateRecipeContext } from '../../main';
 import { useNavigate } from 'react-router-dom';
 import ContinueButton from '../../components/ContinueButton';
 
 export default function RecipeCreateInstructions() {
   const nameRef = useRef<HTMLTextAreaElement>(null);
-  const amountRef = useRef<HTMLInputElement>(null);
-  const measurementRef = useRef<HTMLSelectElement>(null);
   const navigate = useNavigate();
   const [isErrorVisible, setIsErrorVisible] = useState(false);
 
