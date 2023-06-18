@@ -9,8 +9,8 @@ import {
 } from 'react-router-dom';
 import Index from './pages';
 import Navbar from './components/Navbar';
-import SignIn from './pages/SignIn';
-import SignInGoogle from './pages/SignInGoogle';
+import SignIn from './pages/auth/SignIn';
+import SignInGoogle from './pages/auth/SignInGoogle';
 import Dashboard from './pages/dashboard/Dashboard';
 import { CookiesProvider } from 'react-cookie';
 import OnBoardIngredients from './pages/on-board/Ingredients';

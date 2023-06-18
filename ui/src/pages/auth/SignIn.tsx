@@ -1,7 +1,7 @@
-import LetsGoImage from '../assets/lets-go.svg';
+import LetsGoImage from '../../assets/lets-go.svg';
 import { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import useAuth from '../hooks/useAuth';
+import useAuth from '../../hooks/useAuth';
 import axios from 'axios';
 
 export default function SignIn() {
