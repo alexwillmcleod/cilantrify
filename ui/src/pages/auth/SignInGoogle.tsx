@@ -5,8 +5,8 @@ import useAuth from '../../hooks/useAuth';
 import axios from 'axios';
 
 export default function SignInGoogle() {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [message, setMessage] = useState('Signing in with Google...');
+  const [searchParams] = useSearchParams();
+  const [message] = useState('Signing in with Google...');
   const navigate = useNavigate();
   const code: string | null = searchParams.get('code');
 

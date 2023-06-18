@@ -18,11 +18,11 @@ import OnBoardInstructions from './pages/on-board/Instructions';
 import OnBoardSuccess from './pages/on-board/Success';
 import OnBoardImages from './pages/on-board/Images';
 import {
-  IngredientListElementProps,
+  // IngredientListElementProps,
   IngredientListProps,
 } from './pages/on-board/IngredientListElement';
-import { FileContent } from 'use-file-picker';
-import { Redirect } from 'react-router-dom';
+// import { FileContent } from 'use-file-picker';
+// import { Redirect } from 'react-router-dom';
 import ViewRecipe from './pages/ViewRecipe';
 
 interface CreateRecipeState {

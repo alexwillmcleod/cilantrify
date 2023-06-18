@@ -21,6 +21,8 @@ export default function SignIn() {
     fetchUser();
   });
 
+  const apiUrl = import.meta.env.VITE_API_URL;
+
   return (
     <div className="grid grid-cols-2 max-lg:grid-cols-1 p-20 max-sm:p-6">
       <div className="flex flex-col justify-center items-center max-lg:hidden">
@@ -37,7 +39,7 @@ export default function SignIn() {
           <span className="flex flex-col gap-4 items-center">
             <a
               className="bg-accent-green px-4 py-2 w-fit rounded-xl font-bold text-white text-xl max-sm:text-sm"
-              href="http://localhost/auth/google"
+              href={`${apiUrl}/auth/google`}
               // target="_blank"
             >
               <span className="flex flex-inline gap-[7px]">
