@@ -24,6 +24,10 @@ import {
 // import { FileContent } from 'use-file-picker';
 // import { Redirect } from 'react-router-dom';
 import ViewRecipe from './pages/ViewRecipe';
+import SignInPasswordless from './pages/auth/SignInEmail';
+import SignInEmail from './pages/auth/SignInEmail';
+import EmailSent from './pages/auth/EmailSent';
+import VerifyEmail from './pages/auth/VerifyEmail';
 
 interface CreateRecipeState {
   instructions: string[];
@@ -56,15 +60,32 @@ const router = createBrowserRouter([
     element: <Index />,
   },
   {
-    path: '/sign-in',
-    element: <SignIn />,
+    path: '/auth',
+    children: [
+      {
+        path: 'google/callback',
+        element: <SignInGoogle />,
+      },
+      {
+        path: 'email',
+        element: <SignInEmail />,
+      },
+      {
+        path: 'email-sent',
+        element: <EmailSent />,
+      },
+      {
+        path: 'sign-in',
+        element: <SignIn />,
+      },
+      {
+        path: 'verify/:code',
+        element: <VerifyEmail />,
+      },
+    ],
   },
   {
-    path: '/auth/google/callback',
-    element: <SignInGoogle />,
-  },
-  {
-    path: '/dashboard',
+    path: 'dashboard',
     element: <Dashboard />,
   },
   {

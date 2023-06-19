@@ -11,7 +11,7 @@ export default function Index() {
           </p>
           <Link
             className="bg-accent-green px-4 py-2 w-fit rounded-xl font-bold text-white text-lg max-sm:text-sm"
-            to="/sign-in"
+            to="/auth/sign-in"
           >
             Get Cooking!
           </Link>

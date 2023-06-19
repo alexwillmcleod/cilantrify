@@ -56,7 +56,7 @@ export default function SignIn() {
             </a>
             <Link
               className="bg-accent-green px-4 py-2 w-fit rounded-xl font-bold text-white text-xl max-sm:text-sm"
-              to="/sign-in"
+              to="/auth/email"
             >
               <span className="flex flex-inline gap-[7px]">
                 Continue with <p className="text-accent-red">Email</p>

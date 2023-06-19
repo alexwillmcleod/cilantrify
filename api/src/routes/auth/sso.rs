@@ -15,17 +15,18 @@ use dotenvy::dotenv;
 use entity::entities::user;
 use hmac::{Hmac, Mac};
 use jwt::{AlgorithmType, Header, SignWithKey, Token, VerifyWithKey};
+
 use lettre::message::header::ContentType;
 use lettre::transport::smtp::authentication::Credentials;
 use lettre::{Message, SmtpTransport, Transport};
-use oauth2::{AuthorizationCode, CsrfToken, Scope, TokenResponse};
-use reqwest::Client;
 use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, QueryFilter, Set};
 use serde::{Deserialize, Serialize};
 use sha2::Sha256;
 use std::sync::Arc;
 
 use crate::{routes::auth::User, AppState};
+
+use super::jwt::UserClaims;
 
 pub fn sso_routes() -> Router<Arc<AppState>> {
   Router::new()
@@ -51,7 +52,7 @@ async fn continue_with_sso(
   let claims = ContinueWithSSOBody {
     email: email_address.clone(),
   };
-  let token_string: String = claims.sign_with_key(&key).unwrap();
+  let token_string: String = claims.sign_with_key(&key).unwrap().replace(".", "%2E");
 
   let email_message = Message::builder()
     .from("Alex @ Cilantrify <alex@cilantrify.com>".parse().unwrap())
@@ -106,7 +107,6 @@ struct ContinueWithSSOCallbackBody {
 
 async fn continue_with_sso_callback(
   State(state): State<Arc<AppState>>,
-  mut session: WritableSession,
   Json(body): Json<ContinueWithSSOCallbackBody>,
 ) -> (StatusCode, String) {
   // Exchange the code
@@ -131,9 +131,6 @@ async fn continue_with_sso_callback(
     family_name: body.family_name.clone(),
   };
 
-  // Start session with user
-  session.insert("user", &user).unwrap();
-
   if let Some(user) = user::Entity::find()
     .filter(user::Column::Email.eq(user.email.clone()))
     .all(&state.db)
@@ -141,13 +138,12 @@ async fn continue_with_sso_callback(
     .unwrap()
     .get(0)
   {
-    return (
-      StatusCode::OK,
-      format!(
-        "successfully signed in as {} {}",
-        user.given_name, user.family_name
-      ),
-    );
+    let Ok(token) =
+      UserClaims::new(user.id, user.given_name.clone(), user.family_name.clone()).sign() else {
+        return (StatusCode::INTERNAL_SERVER_ERROR, String::from("could not create session token"));
+      };
+
+    return (StatusCode::OK, token);
   }
 
   let new_user = user::ActiveModel {
@@ -158,13 +154,12 @@ async fn continue_with_sso_callback(
     ..Default::default()
   };
   match new_user.insert(&state.db).await {
-    Ok(value) => (
-      StatusCode::OK,
-      format!(
-        "created user with email {} and id {}",
-        &value.email, &value.id
-      ),
-    ),
+    Ok(user) => {
+      let Ok(token) = UserClaims::new(user.id, user.given_name.clone(), user.family_name.clone()).sign() else {
+        return (StatusCode::INTERNAL_SERVER_ERROR, String::from("could not create session token"));
+      };
+      (StatusCode::OK, token)
+    }
     Err(k) => {
       tracing::debug!("server error: {}", k);
       (
