@@ -5,4 +5,5 @@ pub mod prelude;
 pub mod ingredient;
 pub mod recipe;
 pub mod sea_orm_active_enums;
+pub mod sign_in_code;
 pub mod user;

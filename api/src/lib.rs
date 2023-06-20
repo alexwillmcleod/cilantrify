@@ -3,13 +3,12 @@ pub mod routes;
 
 use anyhow::Result;
 use dotenvy::dotenv;
-use migration::{Migrator, MigratorTrait};
 use oauth2::{basic::BasicClient, AuthUrl, ClientId, ClientSecret, RedirectUrl, TokenUrl};
-use sea_orm::{Database, DatabaseConnection};
+use sqlx::postgres::{PgPool, PgPoolOptions};
 
 #[derive(Clone)]
 pub struct AppState {
-  pub db: DatabaseConnection,
+  pub db: PgPool,
   pub google_oauth_client: BasicClient,
 }
 
@@ -20,14 +19,16 @@ impl AppState {
     let database_url: String =
       std::env::var("DATABASE_URL").expect("DATABASE_URL variable is not set");
 
-    let db: DatabaseConnection = Database::connect(database_url).await?;
-    let google_oauth_client = create_google_oauth_client();
+    let db = PgPoolOptions::new()
+      .max_connections(5)
+      .connect(&database_url)
+      .await?;
 
-    Migrator::up(&db, None).await?; // Migrate the database
+    let google_oauth_client = create_google_oauth_client();
     Ok(AppState {
       db,
       google_oauth_client,
-    }) // Return the app state
+    })
   }
 }
 

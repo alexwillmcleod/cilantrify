@@ -2,4 +2,5 @@
 
 pub use super::ingredient::Entity as Ingredient;
 pub use super::recipe::Entity as Recipe;
+pub use super::sign_in_code::Entity as SignInCode;
 pub use super::user::Entity as User;

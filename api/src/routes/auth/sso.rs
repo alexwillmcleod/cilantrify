@@ -11,14 +11,16 @@ use axum::{
   Router,
 };
 use axum_sessions::extractors::WritableSession;
+use chrono::{DateTime, Days};
 use dotenvy::dotenv;
-use entity::entities::user;
+use entity::entities::{sign_in_code, user};
 use hmac::{Hmac, Mac};
 use jwt::{AlgorithmType, Header, SignWithKey, Token, VerifyWithKey};
 
 use lettre::message::header::ContentType;
 use lettre::transport::smtp::authentication::Credentials;
 use lettre::{Message, SmtpTransport, Transport};
+use rand::Rng;
 use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, QueryFilter, Set};
 use serde::{Deserialize, Serialize};
 use sha2::Sha256;
@@ -40,19 +42,34 @@ struct ContinueWithSSOBody {
 }
 
 async fn continue_with_sso(
-  // State(state): State<Arc<AppState>>,
+  State(state): State<Arc<AppState>>,
   Json(body): Json<ContinueWithSSOBody>,
 ) -> (StatusCode, String) {
   dotenv().ok();
   let email_address = body.email;
 
-  let key_string: String =
-    std::env::var("JWT_SECRET").expect("JWT_SECRET must be set as an environment variable");
-  let key: Hmac<Sha256> = Hmac::new_from_slice(key_string.as_bytes()).unwrap();
-  let claims = ContinueWithSSOBody {
-    email: email_address.clone(),
+  const CHARSET: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZ\
+                          abcdefghijklmnopqrstuvwxyz\
+                          0123456789)(*&^%$#@!~";
+  const CODE_LEN: usize = 6;
+  let mut rng = rand::thread_rng();
+
+  let code: String = (0..CODE_LEN)
+    .map(|_| {
+      let idx = rng.gen_range(0..CHARSET.len());
+      CHARSET[idx] as char
+    })
+    .collect();
+
+  let sign_in_code: sign_in_code::ActiveModel = sign_in_code::ActiveModel {
+    email_address: Set(email_address.clone()),
+    code: Set(code.clone()),
+    ..Default::default()
   };
-  let token_string: String = claims.sign_with_key(&key).unwrap().replace(".", "%2E");
+
+  let Ok(res) = sign_in_code.insert(&state.db).await else {
+    return (StatusCode::INTERNAL_SERVER_ERROR, String::from("could not create sign in code"));
+  };
 
   let email_message = Message::builder()
     .from("Alex @ Cilantrify <alex@cilantrify.com>".parse().unwrap())
@@ -61,7 +78,7 @@ async fn continue_with_sso(
     .header(ContentType::TEXT_PLAIN)
     .body(format!(
       "Hello! Great to have you on board. Finish up with https://cilantrify.com/auth/verify/{}",
-      token_string
+      code
     ))
     .unwrap();
 
@@ -113,14 +130,10 @@ async fn continue_with_sso_callback(
 
   let code = body.code.clone();
 
-  let key_string: String =
-    std::env::var("JWT_SECRET").expect("JWT_SECRET must be set as an environment variable");
-  let key: Hmac<Sha256> = Hmac::new_from_slice(key_string.as_bytes()).unwrap();
-
-  let claims: ContinueWithSSOBody = match code.verify_with_key(&key) {
-    Ok(claims) => claims,
-    Err(..) => return (StatusCode::BAD_REQUEST, String::from("invalid token")),
-  };
+  // Let's verify the code
+  let Ok(email) = sign_in_code::Entity::find()
+    .filter(sign_in_code::Column::Code.eq(code))
+    .filter(sign_in_code::Column::CreatedAt.into::<i32>());
 
   // Let's create a user
   let user: User = User {
