@@ -6,15 +6,14 @@ use crate::AppState;
 use axum::{
   extract::{Extension, State},
   http::StatusCode,
-  response::{IntoResponse, Json},
+  response::{IntoResponse, Json, Response},
   routing::get,
   Router,
 };
 use axum_macros::debug_handler;
-use entity::entities::user;
 use google::google_routes;
-use sea_orm::EntityTrait;
 use serde::{Deserialize, Serialize};
+use sqlx::Row;
 use sso::sso_routes;
 use std::sync::Arc;
 
@@ -36,21 +35,30 @@ pub fn auth_routes() -> Router<Arc<AppState>> {
     .nest("/sso", sso_routes())
 }
 
-
 #[debug_handler]
 async fn user_info(
   Extension(user_claims): Extension<Option<UserClaims>>,
   State(state): State<Arc<AppState>>,
-) -> impl IntoResponse {
+) -> Response {
   let Some(user) = user_claims else {
-    return Json(None);
+    return Json(None::<User>).into_response();
   };
-  let user_list = user::Entity::find_by_id(user.id)
-    .all(&state.db)
-    .await
-    .unwrap();
-  let Some(user) = user_list.first() else {
-    return Json(None);
+
+  let select_query = "SELECT * FROM users WHERE id = $1";
+  let Ok(user_row) = sqlx::query(select_query)
+    .bind(&user.id)
+    .fetch_one(&state.db)
+    .await else {
+      return (StatusCode::INTERNAL_SERVER_ERROR, String::from("could not find user")).into_response();
+    };
+
+  let user: User = User {
+    given_name: user_row.get("given_name"),
+    family_name: user_row.get("family_name"),
+    picture: user_row.get("picture"),
+    email: user_row.get("email"),
+    name: user_row.get("name"),
   };
-  Json(Some(user.clone()))
+
+  (StatusCode::OK, Json(Some(user))).into_response()
 }

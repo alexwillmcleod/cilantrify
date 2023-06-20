@@ -12,12 +12,10 @@ use cilantrify_api::{
   AppState,
 };
 use dotenvy::dotenv;
-use entity::entities::user;
 use http::{
   header::{self, AUTHORIZATION, CONTENT_TYPE},
   HeaderValue, Method, Request, Response,
 };
-use sea_orm::{ActiveModelTrait, Set};
 use serde::{Deserialize, Serialize};
 use std::net::SocketAddr;
 use std::sync::Arc;
@@ -39,14 +37,13 @@ async fn main() -> Result<()> {
     .allow_headers([AUTHORIZATION, CONTENT_TYPE])
     .allow_origin("http://localhost:5173".parse::<HeaderValue>().unwrap());
 
-  let auth_routes = cilantrify_api::routes::auth::auth_routes();
-  let recipe_routes = cilantrify_api::routes::recipes::recipe_routes();
+  // let auth_routes = cilantrify_api::routes::auth::auth_routes();
+  // let recipe_routes = cilantrify_api::routes::recipes::recipe_routes();
 
   let app = Router::new()
     .route("/", get(root))
-    .route("/cat", get(get_cat_fact))
-    .nest("/auth", auth_routes)
-    .nest("/recipe", recipe_routes)
+    // .nest("/auth", auth_routes)
+    // .nest("/recipe", recipe_routes)
     .layer(
       ServiceBuilder::new()
         .layer(Extension::<Option<UserClaims>>(None))
@@ -76,18 +73,4 @@ async fn root(
     )),
     None => Ok(String::from("Hello, from Axum!")),
   }
-}
-
-#[derive(Serialize, Deserialize, Clone)]
-struct CatFact {
-  fact: String,
-  length: usize,
-}
-
-async fn get_cat_fact() -> impl axum::response::IntoResponse {
-  let cat_fact: CatFact = CatFact {
-    fact: String::from("Cats can be right-pawed or left-pawed."),
-    length: 0,
-  };
-  serde_json::to_string(&cat_fact).unwrap()
 }

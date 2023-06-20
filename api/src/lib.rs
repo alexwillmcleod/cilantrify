@@ -4,7 +4,11 @@ pub mod routes;
 use anyhow::Result;
 use dotenvy::dotenv;
 use oauth2::{basic::BasicClient, AuthUrl, ClientId, ClientSecret, RedirectUrl, TokenUrl};
-use sqlx::postgres::{PgPool, PgPoolOptions};
+use sqlx::{
+  migrate::Migrator,
+  postgres::{PgPool, PgPoolOptions},
+  Acquire,
+};
 
 #[derive(Clone)]
 pub struct AppState {
@@ -23,6 +27,10 @@ impl AppState {
       .max_connections(5)
       .connect(&database_url)
       .await?;
+
+    // We are going to run our migrations on the database
+    let migrator = Migrator::new(std::path::Path::new("./migrations")).await?;
+    migrator.run(&db).await?;
 
     let google_oauth_client = create_google_oauth_client();
     Ok(AppState {

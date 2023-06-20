@@ -7,16 +7,15 @@ use crate::routes::auth::jwt::UserClaims;
 use axum::{
   extract::{Json, State},
   http::StatusCode,
-  response::Redirect,
+  response::{IntoResponse, Redirect},
   routing::{get, post},
   Router,
 };
 use axum_macros::debug_handler;
-use entity::entities::user;
 use oauth2::{AuthorizationCode, CsrfToken, Scope, TokenResponse};
 use reqwest::Client;
-use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, QueryFilter, Set};
 use serde::{Deserialize, Serialize};
+use sqlx::Row;
 use std::sync::Arc;
 
 use crate::{routes::auth::User, AppState};
@@ -49,7 +48,7 @@ struct ContinueWithGoogleCallback {
 async fn continue_with_google_callback(
   State(state): State<Arc<AppState>>,
   Json(query): Json<ContinueWithGoogleCallback>,
-) -> (StatusCode, String) {
+) -> axum::response::Response {
   // Exchange the code
   let token = state
     .google_oauth_client
@@ -61,51 +60,51 @@ async fn continue_with_google_callback(
   tracing::debug!("exchanged token, {}", token.access_token().secret());
 
   let client: Client = Client::new();
-  let body = client
+  let Ok(body) = client
     .get("https://www.googleapis.com/oauth2/v3/userinfo")
     .bearer_auth(token.access_token().secret())
     .send()
     .await
     .unwrap()
     .json::<User>()
-    .await
-    .unwrap();
+    .await else {
+      return (StatusCode::BAD_GATEWAY, String::from("invalid code")).into_response();
+    };
 
-  if let Some(user) = user::Entity::find()
-    .filter(user::Column::Email.eq(body.email.clone()))
-    .all(&state.db)
-    .await
-    .unwrap()
-    .get(0)
-  {
-    let Ok(token) =
-      UserClaims::new(user.id, user.given_name.clone(), user.family_name.clone()).sign() else {
-        return (StatusCode::INTERNAL_SERVER_ERROR, String::from("could not create session token"));
-      };
+  // We are going to try and find the user
+  // If the users exists
+  //   Create a token
+  // Else
+  //   Add the user to the database
+  //   Create the token
 
-    return (StatusCode::OK, token);
-  }
+  let upsert_query =
+    "UPSERT INTO users (email, given_name, family_name, picture) VALUES ($1, $2, $3, $4)";
+  let Ok(_) = sqlx::query(upsert_query)
+    .bind(&body.email.clone())
+    .bind(&body.given_name.clone())
+    .bind(&body.family_name.clone())
+    .bind(&body.picture.clone())
+    .execute(&state.db)
+    .await else {
+      return (StatusCode::INTERNAL_SERVER_ERROR, String::from("could not upsert user into database")).into_response();
+    };
 
-  let new_user = user::ActiveModel {
-    email: Set(body.email.clone()),
-    family_name: Set(body.family_name.clone()),
-    given_name: Set(body.given_name.clone()),
-    picture: Set(body.picture.clone()),
-    ..Default::default()
+  let select_query = "SELECT id, given_name, family_name FROM users WHERE email = $1";
+  let Ok(user) = sqlx::query(select_query)
+    .bind(&body.email.clone())
+    .fetch_one(&state.db)
+    .await else {
+      return (StatusCode::INTERNAL_SERVER_ERROR, String::from("could not find user")).into_response();
+    };
+  let Ok(token) = UserClaims::new(
+    user.get("email"),
+    user.get("given_name"),
+    user.get("family_name"),
+  )
+  .sign() else {
+    return (StatusCode::INTERNAL_SERVER_ERROR, String::from("could not create auth token")).into_response();
   };
-  match new_user.insert(&state.db).await {
-    Ok(user) => {
-      let Ok(token) = UserClaims::new(user.id, user.given_name.clone(), user.family_name.clone()).sign() else {
-        return (StatusCode::INTERNAL_SERVER_ERROR, String::from("could not create session token"));
-      };
-      (StatusCode::OK, token)
-    }
-    Err(k) => {
-      tracing::debug!("server error: {}", k);
-      (
-        StatusCode::INTERNAL_SERVER_ERROR,
-        String::from("failed to create user"),
-      )
-    }
-  }
+
+  (StatusCode::OK, token).into_response()
 }
