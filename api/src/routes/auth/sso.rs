@@ -6,12 +6,12 @@
 use axum::{
   extract::{Json, Query, State},
   http::StatusCode,
-  response::Redirect,
+  response::{IntoResponse, Redirect, Response},
   routing::post,
   Router,
 };
 use axum_sessions::extractors::WritableSession;
-use chrono::{DateTime, Days};
+use chrono::{DateTime, Days, Utc};
 use dotenvy::dotenv;
 use hmac::{Hmac, Mac};
 use jwt::{AlgorithmType, Header, SignWithKey, Token, VerifyWithKey};
@@ -22,6 +22,7 @@ use lettre::{Message, SmtpTransport, Transport};
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 use sha2::Sha256;
+use sqlx::Row;
 use std::sync::Arc;
 
 use crate::{routes::auth::User, AppState};
@@ -41,7 +42,7 @@ struct ContinueWithSSOBody {
 async fn continue_with_sso(
   State(state): State<Arc<AppState>>,
   Json(body): Json<ContinueWithSSOBody>,
-) -> (StatusCode, String) {
+) -> Response {
   dotenv().ok();
   let email_address = body.email;
 
@@ -64,119 +65,112 @@ async fn continue_with_sso(
   //   ..Default::default()
   // };
 
-  // let Ok(res) = sign_in_code.insert(&state.db).await else {
-  //   return (StatusCode::INTERNAL_SERVER_ERROR, String::from("could not create sign in code"));
-  // };
+  let insert_query = "INSERT INTO sign_in_code (email, code) VALUES ($1, $2)";
+  let Ok(res) = sqlx::query(insert_query)
+    .bind(email_address.clone())
+    .bind(code.clone())
+    .execute(&state.db)
+    .await else {
+      return (StatusCode::INTERNAL_SERVER_ERROR, String::from("failed to create sign in code")).into_response();
+    };
 
-  //   let email_message = Message::builder()
-  //     .from("Alex @ Cilantrify <alex@cilantrify.com>".parse().unwrap())
-  //     .to(email_address.clone().parse().unwrap())
-  //     .subject("Verify Cilantrify Account")
-  //     .header(ContentType::TEXT_PLAIN)
-  //     .body(format!(
-  //       "Hello! Great to have you on board. Finish up with https://cilantrify.com/auth/verify/{}",
-  //       code
-  //     ))
-  //     .unwrap();
+  let email_message = Message::builder()
+    .from("Alex @ Cilantrify <alex@cilantrify.com>".parse().unwrap())
+    .to(email_address.clone().parse().unwrap())
+    .subject("Verify Cilantrify Account")
+    .header(ContentType::TEXT_PLAIN)
+    .body(format!(
+      "Hello! Great to have you on board. Finish up with https://cilantrify.com/auth/verify/{}",
+      code
+    ))
+    .unwrap();
 
-  //   let smpt_user =
-  //     std::env::var("SMTP_USER").expect("SMTP_USER must be set as an environment variable");
+  let smpt_user =
+    std::env::var("SMTP_USER").expect("SMTP_USER must be set as an environment variable");
 
-  //   let smpt_pass =
-  //     std::env::var("SMTP_PASS").expect("SMTP_PASS must be set as an environment variable");
+  let smpt_pass =
+    std::env::var("SMTP_PASS").expect("SMTP_PASS must be set as an environment variable");
 
-  //   // let smtp_host =
-  //   // std::env::var("SMTP_HOST").expect("SMTP_HOST msut be set as an environment variable");
+  // let smtp_host =
+  // std::env::var("SMTP_HOST").expect("SMTP_HOST msut be set as an environment variable");
 
-  //   let creds = Credentials::new(smpt_user, smpt_pass);
+  let creds = Credentials::new(smpt_user, smpt_pass);
 
-  //   let mailer = SmtpTransport::relay("smtp.gmail.com")
-  //     .unwrap()
-  //     .credentials(creds)
-  //     .build();
+  let mailer = SmtpTransport::relay("smtp.gmail.com")
+    .unwrap()
+    .credentials(creds)
+    .build();
 
-  //   match mailer.send(&email_message) {
-  //     Ok(_) => (
-  //       StatusCode::OK,
-  //       format!("email sent to {} successfully", email_address.clone()),
-  //     ),
-  //     Err(e) => {
-  //       tracing::debug!("failed to send email to {}", email_address.clone());
-  //       tracing::debug!("{}", e); // Log error
-  //       (
-  //         StatusCode::INTERNAL_SERVER_ERROR,
-  //         String::from("failed to send email"),
-  //       )
-  //     }
-  // }
-  todo!();
+  match mailer.send(&email_message) {
+    Ok(_) => (
+      StatusCode::OK,
+      format!("email sent to {} successfully", email_address.clone()),
+    )
+      .into_response(),
+    Err(e) => {
+      tracing::debug!("failed to send email to {}", email_address.clone());
+      tracing::debug!("{}", e); // Log error
+      (
+        StatusCode::INTERNAL_SERVER_ERROR,
+        String::from("failed to send email"),
+      )
+        .into_response()
+    }
+  }
 }
 
-// #[derive(Deserialize, Debug)]
-// struct ContinueWithSSOCallbackBody {
-//   code: String,
-//   name: String,
-//   given_name: String,
-//   family_name: String,
-// }
+#[derive(Deserialize, Debug)]
+struct ContinueWithSSOCallbackBody {
+  code: String,
+  email: String,
+  name: String,
+  given_name: String,
+  family_name: String,
+}
 
-// async fn continue_with_sso_callback(
-//   State(state): State<Arc<AppState>>,
-//   Json(body): Json<ContinueWithSSOCallbackBody>,
-// ) -> (StatusCode, String) {
-//   // Exchange the code
+async fn continue_with_sso_callback(
+  State(state): State<Arc<AppState>>,
+  Json(body): Json<ContinueWithSSOCallbackBody>,
+) -> Response {
+  // Let's find the code
+  let select_query =
+    "SELECT (email) FROM sign_in_code WHERE code = $1 AND expires_at < $2 AND email = $3";
+  let Ok(code_row) = sqlx::query(select_query)
+    .bind(&body.code.clone())
+    .bind(Utc::now().naive_utc())
+    .bind(&body.email.clone())
+    .fetch_one(&state.db)
+    .await else {
+    return (StatusCode::NOT_FOUND, String::from("could not find code")).into_response();
+  };
 
-//   let code = body.code.clone();
+  let upsert_query = "UPSERT INTO users (email, given_name, family_name) VALUES ($1, $2, $3)";
+  let Ok(_) = sqlx::query(upsert_query)
+    .bind(&body.email.clone())
+    .bind(&body.given_name.clone())
+    .bind(&body.family_name.clone())
+    .execute(&state.db)
+    .await else {
+      return (StatusCode::INTERNAL_SERVER_ERROR, String::from("could not upsert user into database")).into_response();
+    };
 
-//   // Let's verify the code
-//   let Ok(email) = sign_in_code::Entity::find()
-//     .filter(sign_in_code::Column::Code.eq(code))
-//     .filter(sign_in_code::Column::CreatedAt);
+  let select_query = "SELECT * FROM users WHERE email = $1";
 
-//   // Let's create a user
-//   let user: User = User {
-//     picture: None,
-//     email: claims.email,
-//     name: body.name.clone(),
-//     given_name: body.given_name.clone(),
-//     family_name: body.family_name.clone(),
-//   };
+  let Ok(user) = sqlx::query(select_query)
+    .bind(&body.email.clone())
+    .fetch_one(&state.db)
+    .await else {
+      return (StatusCode::NOT_FOUND, String::from("user with that email not found")).into_response()
+    };
 
-//   if let Some(user) = user::Entity::find()
-//     .filter(user::Column::Email.eq(user.email.clone()))
-//     .all(&state.db)
-//     .await
-//     .unwrap()
-//     .get(0)
-//   {
-//     let Ok(token) =
-//       UserClaims::new(user.id, user.given_name.clone(), user.family_name.clone()).sign() else {
-//         return (StatusCode::INTERNAL_SERVER_ERROR, String::from("could not create session token"));
-//       };
+  let Ok(token) =
+    UserClaims::new(
+      user.get("id"),
+      user.get("given_name"),
+       user.get("family_name")
+    ).sign() else {
+      return (StatusCode::INTERNAL_SERVER_ERROR, String::from("could not create session token")).into_response();
+    };
 
-//     return (StatusCode::OK, token);
-//   }
-
-//   let new_user = user::ActiveModel {
-//     email: Set(user.email.clone()),
-//     family_name: Set(body.family_name.clone()),
-//     given_name: Set(body.given_name.clone()),
-//     picture: Set(user.picture.clone()),
-//     ..Default::default()
-//   };
-//   match new_user.insert(&state.db).await {
-//     Ok(user) => {
-//       let Ok(token) = UserClaims::new(user.id, user.given_name.clone(), user.family_name.clone()).sign() else {
-//         return (StatusCode::INTERNAL_SERVER_ERROR, String::from("could not create session token"));
-//       };
-//       (StatusCode::OK, token)
-//     }
-//     Err(k) => {
-//       tracing::debug!("server error: {}", k);
-//       (
-//         StatusCode::INTERNAL_SERVER_ERROR,
-//         String::from("failed to create user"),
-//       )
-//     }
-//   }
-// }
+  (StatusCode::OK, token).into_response()
+}

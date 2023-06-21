@@ -27,4 +27,4 @@ http = "0.2.9"
 axum-auth = "0.4.0"
 chrono = "0.4.26"
 rand = "0.8.5"
-sqlx = { version = "0.6.3", features = ["runtime-tokio-rustls", "postgres", "migrate"]}
+sqlx = { version = "0.6.3", features = ["runtime-tokio-rustls", "postgres", "migrate", "chrono"]}
