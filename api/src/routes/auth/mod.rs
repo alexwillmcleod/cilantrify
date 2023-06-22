@@ -11,6 +11,7 @@ use axum::{
   Router,
 };
 use axum_macros::debug_handler;
+use chrono::DateTime;
 use google::google_routes;
 use serde::{Deserialize, Serialize};
 use sqlx::Row;
@@ -19,11 +20,10 @@ use std::sync::Arc;
 
 use self::jwt::UserClaims;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(sqlx::FromRow, Serialize, Deserialize, Debug)]
 pub struct User {
   pub picture: Option<String>,
   pub email: String,
-  pub name: String,
   pub given_name: String,
   pub family_name: String,
 }
@@ -35,7 +35,6 @@ pub fn auth_routes() -> Router<Arc<AppState>> {
   // .nest("/sso", sso_routes())
 }
 
-#[debug_handler]
 async fn user_info(
   Extension(user_claims): Extension<Option<UserClaims>>,
   State(state): State<Arc<AppState>>,
@@ -44,21 +43,14 @@ async fn user_info(
     return Json(None::<User>).into_response();
   };
 
-  let select_query = "SELECT * FROM users WHERE id = $1";
-  let Ok(user_row) = sqlx::query(select_query)
-    .bind(&user.id)
+  let Ok(user) = sqlx::query_as!(
+    User, 
+    "SELECT picture, email, family_name, given_name FROM users WHERE id = $1",
+    &user.id
+  )
     .fetch_one(&state.db)
     .await else {
       return (StatusCode::INTERNAL_SERVER_ERROR, String::from("could not find user")).into_response();
     };
-
-  let user: User = User {
-    given_name: user_row.get("given_name"),
-    family_name: user_row.get("family_name"),
-    picture: user_row.get("picture"),
-    email: user_row.get("email"),
-    name: user_row.get("name"),
-  };
-
   (StatusCode::OK, Json(Some(user))).into_response()
 }
