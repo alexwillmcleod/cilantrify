@@ -32,7 +32,7 @@ pub fn auth_routes() -> Router<Arc<AppState>> {
   Router::new()
     .route("/info", get(user_info))
     .nest("/google", google_routes())
-    .nest("/sso", sso_routes())
+  // .nest("/sso", sso_routes())
 }
 
 #[debug_handler]

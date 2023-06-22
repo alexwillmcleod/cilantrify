@@ -1,3 +1,4 @@
+#![feature(async_closure)]
 use anyhow::Result;
 use axum::{
   extract::{Json, State},
@@ -37,12 +38,12 @@ async fn main() -> Result<()> {
     .allow_headers([AUTHORIZATION, CONTENT_TYPE])
     .allow_origin("http://localhost:5173".parse::<HeaderValue>().unwrap());
 
-  // let auth_routes = cilantrify_api::routes::auth::auth_routes();
+  let auth_routes = cilantrify_api::routes::auth::auth_routes();
   // let recipe_routes = cilantrify_api::routes::recipes::recipe_routes();
 
   let app = Router::new()
     .route("/", get(root))
-    // .nest("/auth", auth_routes)
+    .nest("/auth", auth_routes)
     // .nest("/recipe", recipe_routes)
     .layer(
       ServiceBuilder::new()

@@ -3,7 +3,7 @@ use jwt::{SignWithKey, VerifyWithKey};
 use serde::{Deserialize, Serialize};
 use sha2::Sha256;
 
-#[derive(Deserialize, Serialize, Clone, Debug)]
+#[derive(sqlx::FromRow, Deserialize, Serialize, Clone, Debug)]
 pub struct UserClaims {
   pub id: i32,
   pub given_name: String,

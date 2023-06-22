@@ -30,8 +30,9 @@ use crate::{routes::auth::User, AppState};
 use super::jwt::UserClaims;
 
 pub fn sso_routes() -> Router<Arc<AppState>> {
-  Router::new().route("/", post(continue_with_sso))
+  // Router::new().route("/", post(continue_with_sso))
   // .route("/callback", post(continue_with_sso_callback))
+  Router::new()
 }
 
 #[derive(Deserialize, Serialize)]
@@ -58,12 +59,6 @@ async fn continue_with_sso(
       CHARSET[idx] as char
     })
     .collect();
-
-  // let sign_in_code: sign_in_code::ActiveModel = sign_in_code::ActiveModel {
-  //   email_address: Set(email_address.clone()),
-  //   code: Set(code.clone()),
-  //   ..Default::default()
-  // };
 
   let insert_query = "INSERT INTO sign_in_code (email, code) VALUES ($1, $2)";
   let Ok(res) = sqlx::query(insert_query)

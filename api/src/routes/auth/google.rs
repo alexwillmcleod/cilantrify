@@ -77,34 +77,72 @@ async fn continue_with_google_callback(
   // Else
   //   Add the user to the database
   //   Create the token
+  tracing::debug!(
+    "Creating user with name email = {}, name = {} {}, picture = {:?}",
+    &body.email.clone(),
+    &body.given_name.clone(),
+    &body.family_name.clone(),
+    &body.picture.clone()
+  );
 
-  let upsert_query =
-    "UPSERT INTO users (email, given_name, family_name, picture) VALUES ($1, $2, $3, $4)";
-  let Ok(_) = sqlx::query(upsert_query)
-    .bind(&body.email.clone())
-    .bind(&body.given_name.clone())
-    .bind(&body.family_name.clone())
-    .bind(&body.picture.clone())
-    .execute(&state.db)
-    .await else {
-      return (StatusCode::INTERNAL_SERVER_ERROR, String::from("could not upsert user into database")).into_response();
-    };
-
-  let select_query = "SELECT id, given_name, family_name FROM users WHERE email = $1";
-  let Ok(user) = sqlx::query(select_query)
-    .bind(&body.email.clone())
-    .fetch_one(&state.db)
-    .await else {
-      return (StatusCode::INTERNAL_SERVER_ERROR, String::from("could not find user")).into_response();
-    };
-  let Ok(token) = UserClaims::new(
-    user.get("email"),
-    user.get("given_name"),
-    user.get("family_name"),
+  // We are going to try inserting
+  // We will ignore the result
+  let _ = sqlx::query!(
+    r#"
+        INSERT INTO users (email, given_name, family_name) 
+        VALUES ($1, $2, $3) 
+      "#,
+    &body.email.clone(),
+    &body.given_name.clone(),
+    &body.family_name.clone(),
   )
-  .sign() else {
-    return (StatusCode::INTERNAL_SERVER_ERROR, String::from("could not create auth token")).into_response();
+  .fetch_one(&state.db)
+  .await;
+
+  let Ok(user) = sqlx::query_as!(
+    UserClaims,
+    r#"
+      SELECT id, given_name, family_name
+      FROM users
+      WHERE email = $1
+    "#,
+    &body.email.clone()
+  )
+  .fetch_one(&state.db)
+  .await else {
+    return (StatusCode::INTERNAL_SERVER_ERROR, String::from("failed to upsert user")).into_response();
   };
 
-  (StatusCode::OK, token).into_response()
+  if let Some(picture) = &body.picture {
+    match sqlx::query!(
+      r#"
+        UPDATE users
+        SET picture = $1
+        WHERE id = $2
+      "#,
+      picture,
+      user.id
+    )
+    .execute(&state.db)
+    .await
+    {
+      Ok(..) => {}
+      Err(..) => {
+        return (
+          StatusCode::INTERNAL_SERVER_ERROR,
+          String::from("failed to upload profile picture"),
+        )
+          .into_response();
+      }
+    }
+  }
+
+  match user.sign() {
+    Ok(token) => (StatusCode::OK, token),
+    Err(..) => (
+      StatusCode::INTERNAL_SERVER_ERROR,
+      String::from("could not create auth token"),
+    ),
+  }
+  .into_response()
 }

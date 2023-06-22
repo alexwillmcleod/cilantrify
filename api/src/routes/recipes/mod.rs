@@ -11,6 +11,7 @@ use axum_macros::debug_handler;
 use http::StatusCode;
 use reqwest::ResponseBuilderExt;
 use serde::{Deserialize, Serialize};
+use sqlx::Row;
 use std::{
   collections::{HashMap, HashSet},
   sync::Arc,
@@ -61,28 +62,44 @@ async fn fetch(
   State(state): State<Arc<AppState>>,
 ) -> impl IntoResponse {
   let recipe_id = query.recipe_id;
-  // let recipe = recipe::Entity::find_by_id(recipe_id)
-  //   .find_also_related(user::Entity)
-  //   .one(&state.db)
-  //   .await;
 
-  // let Ok(recipe) = recipe else {
-  //   tracing::debug!("Failed to fetch recipe");
-  //   return (StatusCode::INTERNAL_SERVER_ERROR, axum::Json(None));
-  // };
-  // let Some(recipe) = recipe else {
-  //   return (StatusCode::NOT_FOUND, axum::Json(None));
-  // };
+  let select_query = r#"
+    SELECT 
+      recipes.id AS "recipe.id",
+      recipes.title AS "recipe.title",
+      recipes.description AS "recipe.description",
+      recipes.instructions AS "recipe.instructions", 
+      recipes.created_at AS "recipe.created_at",
+      recipes.picture AS "recipe.picture",
+      users.given_name AS "user.given_name",
+      users.family_name AS "user.family_name",
+      users.picture AS "user.picture",
+      ingredients.name AS "ingredient.name",
+      ingredients.amount AS "ingredient.amount",
+      ingredients.unit AS "ingredient.unit",
+    FROM 
+      recipes
+      JOIN users ON users.id = recipe.author_id,
+      JOIN ingredients ON ingredients.id = ANY(recipe.ingredients)
+    WHERE 
+      recipes.id = $1
+  "#;
 
-  // let ingredients = recipe
-  //   .0
-  //   .find_related(ingredient::Entity)
-  //   .all(&state.db)
-  //   .await;
+  let Ok(Some(recipe)) = sqlx::query(select_query)
+    .bind(&recipe_id)
+    .fetch_optional(&state.db)
+    .await else {
+      return (StatusCode::NOT_FOUND, String::from("could not find recipe")).into_response();
+    };
 
-  // let Ok(ingredients) = ingredients else {
-  //   tracing::debug!("Failed to fetch ingredients");
-  //   return (StatusCode::INTERNAL_SERVER_ERROR, axum::Json(None))
+  // let res = FullFetchedRecipe {
+  //   title: recipe.get("recipe.id"),
+  //   picture: recipe.get("recipe.picture"),
+  //   author_first_name: recipe.get("user.given_name"),
+  //   author_last_name: recipe.get("user.family_name"),
+  //   author_profile: recipe.get("user.picture"),
+  //   instructions: recipe.get("user.instructions"),
+  //   // ingredients: recipe.get("ingredients"),
   // };
 
   // let res = FullFetchedRecipe {
@@ -119,33 +136,28 @@ async fn create(
   Extension(user_claims): Extension<Option<UserClaims>>,
   State(state): State<Arc<AppState>>,
   Json(body): Json<CreateRecipeBody>,
-) -> impl IntoResponse {
+) -> Response {
   // We are going to create the recipe and add it to the database
 
   // Lets check there is a user
+  // You must be authenticated to use this route
   let Some(user) = user_claims else {
-    return (StatusCode::UNAUTHORIZED, String::from("you must be signed in to create a recipe"));
+    return (StatusCode::UNAUTHORIZED, String::from("you must be signed in to create a recipe")).into_response();
   };
 
   // Let's check every measurement string is valid
   for ingredient in &body.ingredients {
-    if ![
-      "Grams",
-      "Milligrams",
-      "Kilograms",
-      "Millilitres",
-      "Litres",
-      "Units",
-    ]
-    .iter()
-    .map(|&x| x.to_string())
-    .collect::<HashSet<String>>()
-    .contains(&ingredient.measurement)
+    if !["g", "mg", "kg", "mL", "L", "units"]
+      .iter()
+      .map(|&x| x.to_string())
+      .collect::<HashSet<String>>()
+      .contains(&ingredient.measurement)
     {
       return (
         StatusCode::BAD_REQUEST,
         format!("{} is not a valid measurement unit", ingredient.measurement),
-      );
+      )
+        .into_response();
     }
   }
 
@@ -172,59 +184,56 @@ async fn create(
       .await;
 
     let Ok(res) = body else {
-    return (StatusCode::INTERNAL_SERVER_ERROR, String::from("could not upload image"))
+    return (StatusCode::INTERNAL_SERVER_ERROR, String::from("could not upload image")).into_response();
   };
 
     let Ok(data): Result<serde_json::Value, reqwest::Error> = res.json().await else {
-    return (StatusCode::INTERNAL_SERVER_ERROR, String::from("could not upload image"))
+    return (StatusCode::INTERNAL_SERVER_ERROR, String::from("could not upload image")).into_response();
   };
 
     let Some(url_value): Option<&str> = data["data"]["image"]["url"].as_str() else {
-    return (StatusCode::INTERNAL_SERVER_ERROR, String::from("could not upload image"))
+    return (StatusCode::INTERNAL_SERVER_ERROR, String::from("could not upload image")).into_response();
   };
 
     url = Some(String::from(url_value));
   }
 
-  // let new_recipe = recipe::ActiveModel {
-  //   title: Set(body.title),
-  //   instructions: Set(body.instructions),
-  //   author_id: Set(user.id),
-  //   picture: Set(url),
-  //   ..Default::default()
-  // };
+  // Let's create the recipe
+  // Let's create the ingredients
+  let insert_ingredient_query =
+    "INSERT INTO ingredients (name, amount, unit) VALUES ($1, $2, $3) RETURNING id";
+  let mut ingredients_list: Vec<i32> = vec![];
+  for ingredient in &body.ingredients {
+    let Ok(row) = sqlx::query(insert_ingredient_query)
+      .bind(&ingredient.name)
+      .bind(&ingredient.amount)
+      .bind(&ingredient.measurement)
+      .fetch_one(&state.db)
+      .await else {
+        return (StatusCode::INTERNAL_SERVER_ERROR, String::from("failed to create ingredient")).into_response();
+      };
+    let id: i32 = row.get("id");
+    ingredients_list.push(id);
+  }
 
-  // let Ok(recipe) = new_recipe.insert(&state.db).await else {
-  //   return (StatusCode::INTERNAL_SERVER_ERROR, String::from("failed to create recipe"));
-  // };
+  let insert_query =
+    "INSERT INTO recipes (title, description, instructions, ingredients, picture) VALUES ($1, $2, $3, $4, $5)";
+  let Ok(res) = sqlx::query(insert_query)
+    .bind(&body.title.clone())
+    .bind(&body.instructions.clone())
+    .bind(&user.id.clone())
+    .bind(&ingredients_list)
+    .bind(&url.clone())
+    .execute(&state.db)
+    .await else {
+      return (StatusCode::INTERNAL_SERVER_ERROR, String::from("failed to create recipe")).into_response();
+    };
 
-  // Let's add our ingredients
-  // for ingredient in body.ingredients {
-  //   let new_ingredient = ingredient::ActiveModel {
-  //     name: Set(ingredient.name),
-  //     amount: Set(ingredient.amount),
-  //     measurement: Set(match ingredient.measurement {
-  //       value if value == String::from("Grams") => Measurement::Grams,
-  //       value if value == String::from("Milligrams") => Measurement::Milligrams,
-  //       value if value == String::from("Kilogram") => Measurement::Kilograms,
-  //       value if value == String::from("Litres") => Measurement::Litres,
-  //       value if value == String::from("Millilitres") => Measurement::Millilitres,
-  //       value if value == String::from("Units") => Measurement::Units,
-  //       _ => return (StatusCode::INTERNAL_SERVER_ERROR, "".to_string()),
-  //     }),
-  //     recipe_id: Set(recipe.id),
-  //     ..Default::default()
-  //   };
-  //   let Ok(_ingredient) = new_ingredient.insert(&state.db).await else {
-  //     return (StatusCode::INTERNAL_SERVER_ERROR, String::from("failed to create ingredient"));
-  //   };
-  // }
-
-  // (
-  //   StatusCode::OK,
-  //   format!("successfully created recipe {}", recipe.title),
-  // )
-  todo!()
+  (
+    StatusCode::OK,
+    format!("successfully created recipe {}", &body.title),
+  )
+    .into_response()
 }
 
 #[derive(Deserialize, Serialize)]

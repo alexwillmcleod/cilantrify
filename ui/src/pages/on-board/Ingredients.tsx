@@ -36,17 +36,8 @@ export default function RecipeCreateIngredients() {
   const handleAddElement = () => {
     const name = nameRef.current?.value;
     const amount = amountRef.current?.valueAsNumber;
-    const measurement:
-      | 'Grams'
-      | 'Millilitres'
-      | 'Milligrams'
-      | 'Kilograms'
-      | 'Litres' = measurementRef.current?.value as
-      | 'Grams'
-      | 'Millilitres'
-      | 'Milligrams'
-      | 'Kilograms'
-      | 'Litres';
+    const measurement: 'g' | 'mg' | 'kg' | 'mL' | 'L' | 'units' = measurementRef
+      .current?.value as 'g' | 'mg' | 'kg' | 'mL' | 'L' | 'units';
     console.log(
       `creating element with name ${name}, amount ${amount} ${measurement}`
     );
@@ -109,11 +100,12 @@ export default function RecipeCreateIngredients() {
                   className="w-20 px-4 py-2 bg-accent-blue-clear rounded-lg"
                   ref={measurementRef}
                 >
-                  <option value="Grams">g</option>
-                  <option value="Milligrams">mg</option>
-                  <option value="Kilograms">kg</option>
-                  <option value="Millilitres">mL</option>
-                  <option value="Litres">L</option>
+                  <option>g</option>
+                  <option>mg</option>
+                  <option>kg</option>
+                  <option>mL</option>
+                  <option>L</option>
+                  <option>units</option>
                 </select>
                 <button onClick={handleAddElement}>
                   <img src={PlusIcon} />

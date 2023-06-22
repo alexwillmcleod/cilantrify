@@ -29,8 +29,8 @@ impl AppState {
       .await?;
 
     // We are going to run our migrations on the database
-    let migrator = Migrator::new(std::path::Path::new("./migrations")).await?;
-    migrator.run(&db).await?;
+    // let migrator = Migrator::new(std::path::Path::new("./migrations")).await?;
+    // migrator.run(&db).await?;
 
     let google_oauth_client = create_google_oauth_client();
     Ok(AppState {

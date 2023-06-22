@@ -3,7 +3,7 @@ import CrossIcon from '../../assets/cross-icon.svg';
 export interface IngredientListProps {
   name: string;
   amount: number;
-  measurement: 'Grams' | 'Millilitres' | 'Milligrams' | 'Kilograms' | 'Litres';
+  measurement: 'g' | 'mL' | 'mg' | 'kg' | 'L' | 'units';
 }
 
 export interface IngredientListElementProps {
