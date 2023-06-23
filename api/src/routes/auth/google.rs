@@ -99,8 +99,15 @@ async fn continue_with_google_callback(
   .fetch_one(&state.db)
   .await;
 
+  #[derive(sqlx::FromRow)]
+  struct UserRow {
+    id: i32,
+    given_name: String,
+    family_name: String,
+  }
+
   let Ok(user) = sqlx::query_as!(
-    UserClaims,
+    UserRow,
     r#"
       SELECT id, given_name, family_name
       FROM users
@@ -136,6 +143,8 @@ async fn continue_with_google_callback(
       }
     }
   }
+
+  let user = UserClaims::new(user.id, user.given_name, user.family_name);
 
   match user.sign() {
     Ok(token) => (StatusCode::OK, token),

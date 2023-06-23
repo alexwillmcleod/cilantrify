@@ -10,6 +10,7 @@ use axum::{
   routing::post,
   Router,
 };
+use axum_macros::debug_handler;
 use axum_sessions::extractors::WritableSession;
 use chrono::{DateTime, Days, Utc};
 use dotenvy::dotenv;
@@ -30,9 +31,9 @@ use crate::{routes::auth::User, AppState};
 use super::jwt::UserClaims;
 
 pub fn sso_routes() -> Router<Arc<AppState>> {
-  // Router::new().route("/", post(continue_with_sso))
-  // .route("/callback", post(continue_with_sso_callback))
   Router::new()
+    .route("/", post(continue_with_sso))
+    .route("/callback", post(continue_with_sso_callback))
 }
 
 #[derive(Deserialize, Serialize)]
@@ -40,56 +41,58 @@ struct ContinueWithSSOBody {
   email: String,
 }
 
+fn generate_random_code() -> i32 {
+  let mut rng = rand::thread_rng();
+  rng.gen_range(100_000..1_000_000)
+}
+
+#[debug_handler]
 async fn continue_with_sso(
   State(state): State<Arc<AppState>>,
   Json(body): Json<ContinueWithSSOBody>,
-) -> Response {
+) -> axum::response::Response {
   dotenv().ok();
-  let email_address = body.email;
+  let email_address = body.email.clone();
+  let code = generate_random_code();
 
-  const CHARSET: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZ\
-                          abcdefghijklmnopqrstuvwxyz\
-                          0123456789)(*&^%$#@!~";
-  const CODE_LEN: usize = 6;
-  let mut rng = rand::thread_rng();
+  let res = sqlx::query!(
+    r#"INSERT INTO sign_in_codes (email, code) VALUES ($1, $2)"#,
+    &email_address.clone(),
+    &code
+  )
+  .execute(&state.db)
+  .await;
 
-  let code: String = (0..CODE_LEN)
-    .map(|_| {
-      let idx = rng.gen_range(0..CHARSET.len());
-      CHARSET[idx] as char
-    })
-    .collect();
+  if res.is_err() {
+    return (
+      StatusCode::INTERNAL_SERVER_ERROR,
+      String::from("could not create sign in code"),
+    )
+      .into_response();
+  }
 
-  let insert_query = "INSERT INTO sign_in_code (email, code) VALUES ($1, $2)";
-  let Ok(res) = sqlx::query(insert_query)
-    .bind(email_address.clone())
-    .bind(code.clone())
-    .execute(&state.db)
-    .await else {
-      return (StatusCode::INTERNAL_SERVER_ERROR, String::from("failed to create sign in code")).into_response();
-    };
-
-  let email_message = Message::builder()
+  let Ok(email_message) = Message::builder()
     .from("Alex @ Cilantrify <alex@cilantrify.com>".parse().unwrap())
     .to(email_address.clone().parse().unwrap())
     .subject("Verify Cilantrify Account")
     .header(ContentType::TEXT_PLAIN)
     .body(format!(
       "Hello! Great to have you on board. Finish up with https://cilantrify.com/auth/verify/{}",
-      code
-    ))
-    .unwrap();
+      &code
+    )) else {
+      return (StatusCode::INTERNAL_SERVER_ERROR, String::from("could not write email")).into_response();
+    };
 
-  let smpt_user =
+  let smtp_user =
     std::env::var("SMTP_USER").expect("SMTP_USER must be set as an environment variable");
 
-  let smpt_pass =
+  let smtp_pass =
     std::env::var("SMTP_PASS").expect("SMTP_PASS must be set as an environment variable");
 
   // let smtp_host =
   // std::env::var("SMTP_HOST").expect("SMTP_HOST msut be set as an environment variable");
 
-  let creds = Credentials::new(smpt_user, smpt_pass);
+  let creds = Credentials::new(smtp_user, smtp_pass);
 
   let mailer = SmtpTransport::relay("smtp.gmail.com")
     .unwrap()
@@ -116,11 +119,10 @@ async fn continue_with_sso(
 
 #[derive(Deserialize, Debug)]
 struct ContinueWithSSOCallbackBody {
-  code: String,
+  code: i32,
   email: String,
-  name: String,
-  given_name: String,
-  family_name: String,
+  given_name: Option<String>,
+  family_name: Option<String>,
 }
 
 async fn continue_with_sso_callback(
@@ -128,42 +130,61 @@ async fn continue_with_sso_callback(
   Json(body): Json<ContinueWithSSOCallbackBody>,
 ) -> Response {
   // Let's find the code
-  let select_query =
-    "SELECT (email) FROM sign_in_code WHERE code = $1 AND expires_at < $2 AND email = $3";
-  let Ok(code_row) = sqlx::query(select_query)
-    .bind(&body.code.clone())
-    .bind(Utc::now().naive_utc())
-    .bind(&body.email.clone())
-    .fetch_one(&state.db)
+  let Ok(Some(_)) = sqlx::query!(
+    r#"
+      SELECT sign_in_codes.id
+      FROM 
+        sign_in_codes
+      WHERE code = $1 AND expires_at > $2 AND email = $3
+    "#,
+    &body.code.clone(),
+    Utc::now().naive_utc(),
+    &body.email.clone()
+  )
+    .fetch_optional(&state.db)
     .await else {
-    return (StatusCode::NOT_FOUND, String::from("could not find code")).into_response();
+    return (StatusCode::UNAUTHORIZED, String::from("invalid code")).into_response();
   };
 
-  let upsert_query = "UPSERT INTO users (email, given_name, family_name) VALUES ($1, $2, $3)";
-  let Ok(_) = sqlx::query(upsert_query)
-    .bind(&body.email.clone())
-    .bind(&body.given_name.clone())
-    .bind(&body.family_name.clone())
-    .execute(&state.db)
-    .await else {
-      return (StatusCode::INTERNAL_SERVER_ERROR, String::from("could not upsert user into database")).into_response();
-    };
+  match (&body.given_name.clone(), &body.family_name.clone()) {
+    (Some(given_name), Some(family_name)) => {
+      let _ = sqlx::query!(
+        r#"
+        INSERT INTO users (email, given_name, family_name) 
+        VALUES ($1, $2, $3) 
+      "#,
+        &body.email.clone(),
+        given_name,
+        family_name,
+      )
+      .fetch_one(&state.db)
+      .await;
+    }
+    _ => {}
+  };
 
-  let select_query = "SELECT * FROM users WHERE email = $1";
+  #[derive(sqlx::FromRow)]
+  struct UserRow {
+    id: i32,
+    given_name: String,
+    family_name: String,
+  }
 
-  let Ok(user) = sqlx::query(select_query)
-    .bind(&body.email.clone())
-    .fetch_one(&state.db)
-    .await else {
-      return (StatusCode::NOT_FOUND, String::from("user with that email not found")).into_response()
-    };
-
+  let Ok(user) = sqlx::query_as!(
+    UserRow,
+    r#"
+      SELECT id, given_name, family_name
+      FROM users
+      WHERE email = $1
+    "#,
+    &body.email.clone()
+  )
+  .fetch_one(&state.db)
+  .await else {
+    return (StatusCode::INTERNAL_SERVER_ERROR, String::from("failed to create user")).into_response();
+  };
   let Ok(token) =
-    UserClaims::new(
-      user.get("id"),
-      user.get("given_name"),
-       user.get("family_name")
-    ).sign() else {
+    UserClaims::new(user.id, user.given_name, user.family_name).sign() else {
       return (StatusCode::INTERNAL_SERVER_ERROR, String::from("could not create session token")).into_response();
     };
 

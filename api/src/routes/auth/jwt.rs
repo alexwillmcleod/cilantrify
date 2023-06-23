@@ -1,3 +1,6 @@
+use std::time::{SystemTime, UNIX_EPOCH};
+
+use chrono::Duration;
 use hmac::{Hmac, Mac};
 use jwt::{SignWithKey, VerifyWithKey};
 use serde::{Deserialize, Serialize};
@@ -8,14 +11,22 @@ pub struct UserClaims {
   pub id: i32,
   pub given_name: String,
   pub family_name: String,
+  pub exp: usize,
 }
 
 impl UserClaims {
   pub fn new(id: i32, given_name: String, family_name: String) -> UserClaims {
+    let one_month = 30 * 24 * 60 * 60;
+    let exp = SystemTime::now()
+      .duration_since(UNIX_EPOCH)
+      .unwrap()
+      .as_secs() as usize
+      + (one_month);
     UserClaims {
       id,
       given_name,
       family_name,
+      exp,
     }
   }
   pub fn sign(self) -> Result<String, jwt::Error> {

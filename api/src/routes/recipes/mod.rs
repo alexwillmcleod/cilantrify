@@ -25,16 +25,35 @@ pub fn recipe_routes() -> Router<Arc<AppState>> {
   // .route("/page", get(fetch_last))
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[allow(non_camel_case_types)]
+#[derive(Debug, sqlx::Type, Deserialize, Serialize, Copy, Clone)]
+#[sqlx(type_name = "measurement_unit")]
+enum Unit {
+  #[sqlx(rename = "mg")]
+  mg,
+  #[sqlx(rename = "g")]
+  g,
+  #[sqlx(rename = "kg")]
+  kg,
+  #[sqlx(rename = "mL")]
+  mL,
+  #[sqlx(rename = "L")]
+  L,
+  #[sqlx(rename = "units")]
+  Units,
+}
+
+#[derive(sqlx::FromRow, Serialize, Deserialize, Debug)]
 struct Ingredient {
   name: String,
-  amount: i32,
-  measurement: String,
+  amount: f64,
+  measurement: Unit,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 struct CreateRecipeBody {
   title: String,
+  description: Option<String>,
   ingredients: Vec<Ingredient>,
   instructions: Vec<String>,
   image: Option<String>,
@@ -48,12 +67,27 @@ struct RecipeFetchQuery {
 #[derive(Serialize, Deserialize)]
 struct FullFetchedRecipe {
   title: String,
+  description: Option<String>,
+  created_at: chrono::NaiveDateTime,
   picture: Option<String>,
-  author_first_name: Option<String>,
-  author_last_name: Option<String>,
+  author_given_name: String,
+  author_family_name:String,
   author_profile: Option<String>,
   instructions: Vec<String>,
   ingredients: Vec<Ingredient>,
+}
+
+#[derive(sqlx::FromRow, Deserialize, Serialize)]
+struct RecipeWithoutIngredients {
+  id: i32,
+  title: String,
+  description: Option<String>,
+  created_at: chrono::NaiveDateTime,
+  picture: Option<String>,
+  author_given_name: String,
+  author_family_name: String,
+  author_profile: Option<String>,
+  instructions: Vec<String>,
 }
 
 #[debug_handler]
@@ -63,73 +97,60 @@ async fn fetch(
 ) -> impl IntoResponse {
   let recipe_id = query.recipe_id;
 
-  let select_query = r#"
+  let Ok(recipe) = sqlx::query_as!(
+    RecipeWithoutIngredients, 
+    r#"
     SELECT 
-      recipes.id AS "recipe.id",
-      recipes.title AS "recipe.title",
-      recipes.description AS "recipe.description",
-      recipes.instructions AS "recipe.instructions", 
-      recipes.created_at AS "recipe.created_at",
-      recipes.picture AS "recipe.picture",
-      users.given_name AS "user.given_name",
-      users.family_name AS "user.family_name",
-      users.picture AS "user.picture",
-      ingredients.name AS "ingredient.name",
-      ingredients.amount AS "ingredient.amount",
-      ingredients.unit AS "ingredient.unit",
+      recipes.id AS "id",
+      recipes.title AS "title",
+      recipes.description AS "description",
+      recipes.instructions AS "instructions", 
+      recipes.created_at AS "created_at",
+      recipes.picture AS "picture",
+      users.given_name AS "author_given_name",
+      users.family_name AS "author_family_name",
+      users.picture AS "author_profile"
     FROM 
       recipes
-      JOIN users ON users.id = recipe.author_id,
-      JOIN ingredients ON ingredients.id = ANY(recipe.ingredients)
+      JOIN users ON recipes.author_id = users.id
     WHERE 
       recipes.id = $1
-  "#;
-
-  let Ok(Some(recipe)) = sqlx::query(select_query)
-    .bind(&recipe_id)
-    .fetch_optional(&state.db)
+  "#, recipe_id)
+    .fetch_one(&state.db)
     .await else {
       return (StatusCode::NOT_FOUND, String::from("could not find recipe")).into_response();
     };
 
-  // let res = FullFetchedRecipe {
-  //   title: recipe.get("recipe.id"),
-  //   picture: recipe.get("recipe.picture"),
-  //   author_first_name: recipe.get("user.given_name"),
-  //   author_last_name: recipe.get("user.family_name"),
-  //   author_profile: recipe.get("user.picture"),
-  //   instructions: recipe.get("user.instructions"),
-  //   // ingredients: recipe.get("ingredients"),
-  // };
+    // Let's look for the ingredients now
+    let Ok(ingredients) = sqlx::query_as!(
+      Ingredient,
+      r#"
+        SELECT 
+          name,
+          amount,
+          unit AS "measurement: Unit"
+        FROM 
+          ingredients
+        WHERE recipe_id = $1
+      "#, 
+      recipe.id
+    ).fetch_all(&state.db).await else {
+      return (StatusCode::NOT_FOUND, String::from("could not find ingredients")).into_response();
+    };
 
-  // let res = FullFetchedRecipe {
-  //   title: recipe.0.title,
-  //   picture: recipe.0.picture,
-  //   author_first_name: match &recipe.1 {
-  //     Some(user) => Some(user.given_name.clone()),
-  //     None => None,
-  //   },
-  //   author_last_name: match &recipe.1 {
-  //     Some(user) => Some(user.family_name.clone()),
-  //     None => None,
-  //   },
-  //   author_profile: match &recipe.1 {
-  //     Some(user) => user.picture.clone(),
-  //     None => None,
-  //   },
-  //   instructions: recipe.0.instructions,
-  //   ingredients: ingredients
-  //     .iter()
-  //     .map(|element| Ingredient {
-  //       name: element.name.clone(),
-  //       amount: element.amount.clone(),
-  //       measurement: element.measurement.to_string(),
-  //     })
-  //     .collect::<Vec<Ingredient>>(),
-  // };
+  let res = FullFetchedRecipe {
+    title: recipe.title,
+    description: recipe.description,
+    created_at: recipe.created_at,
+    picture: recipe.picture,
+    author_given_name: recipe.author_given_name,
+    author_family_name: recipe.author_family_name,
+    author_profile: recipe.author_profile,
+    instructions: recipe.instructions,
+    ingredients
+  };
 
-  // (StatusCode::OK, axum::Json(Some(res)))
-  todo!()
+  (StatusCode::OK, axum::Json(Some(res))).into_response()
 }
 
 async fn create(
@@ -138,6 +159,7 @@ async fn create(
   Json(body): Json<CreateRecipeBody>,
 ) -> Response {
   // We are going to create the recipe and add it to the database
+  tracing::debug!("{:?}", body.ingredients);
 
   // Lets check there is a user
   // You must be authenticated to use this route
@@ -145,21 +167,25 @@ async fn create(
     return (StatusCode::UNAUTHORIZED, String::from("you must be signed in to create a recipe")).into_response();
   };
 
+  let Ok(mut tmx) = state.db.begin().await else {
+    return (StatusCode::INTERNAL_SERVER_ERROR, String::from("failed to start database transaction")).into_response();
+  };
+
   // Let's check every measurement string is valid
-  for ingredient in &body.ingredients {
-    if !["g", "mg", "kg", "mL", "L", "units"]
-      .iter()
-      .map(|&x| x.to_string())
-      .collect::<HashSet<String>>()
-      .contains(&ingredient.measurement)
-    {
-      return (
-        StatusCode::BAD_REQUEST,
-        format!("{} is not a valid measurement unit", ingredient.measurement),
-      )
-        .into_response();
-    }
-  }
+  // for ingredient in &body.ingredients {
+  //   if !["g", "mg", "kg", "mL", "L", "units"]
+  //     .iter()
+  //     .map(|&x| x.to_string())
+  //     .collect::<HashSet<String>>()
+  //     .contains(&ingredient.measurement.)
+  //   {
+  //     return (
+  //       StatusCode::BAD_REQUEST,
+  //       format!("{} is not a valid measurement unit", ingredient.measurement),
+  //     )
+  //       .into_response();
+  //   }
+  // }
 
   // Every measurement unit is valid
 
@@ -200,34 +226,51 @@ async fn create(
 
   // Let's create the recipe
   // Let's create the ingredients
-  let insert_ingredient_query =
-    "INSERT INTO ingredients (name, amount, unit) VALUES ($1, $2, $3) RETURNING id";
-  let mut ingredients_list: Vec<i32> = vec![];
-  for ingredient in &body.ingredients {
-    let Ok(row) = sqlx::query(insert_ingredient_query)
-      .bind(&ingredient.name)
-      .bind(&ingredient.amount)
-      .bind(&ingredient.measurement)
-      .fetch_one(&state.db)
-      .await else {
-        return (StatusCode::INTERNAL_SERVER_ERROR, String::from("failed to create ingredient")).into_response();
-      };
-    let id: i32 = row.get("id");
-    ingredients_list.push(id);
+  #[derive(sqlx::FromRow)]
+  struct RecipeIdWrapper {
+    id: i32
   }
-
-  let insert_query =
-    "INSERT INTO recipes (title, description, instructions, ingredients, picture) VALUES ($1, $2, $3, $4, $5)";
-  let Ok(res) = sqlx::query(insert_query)
-    .bind(&body.title.clone())
-    .bind(&body.instructions.clone())
-    .bind(&user.id.clone())
-    .bind(&ingredients_list)
-    .bind(&url.clone())
-    .execute(&state.db)
+  let Ok(res) = sqlx::query_as!(
+    RecipeIdWrapper,
+    r#"
+      INSERT INTO recipes (title, description, instructions, author_id, picture)
+      VALUES ($1, $2, $3, $4, $5)
+      RETURNING id
+    "#,
+      &body.title.clone(),
+      body.description.clone(),
+      &body.instructions.clone(),
+      &user.id.clone(),
+      url.clone()
+    )
+    .fetch_one(&mut tmx)
     .await else {
+      tmx.rollback().await.unwrap();
       return (StatusCode::INTERNAL_SERVER_ERROR, String::from("failed to create recipe")).into_response();
     };
+
+  let recipe_id: i32 = res.id;
+
+  for ingredient in body.ingredients {
+    tracing::debug!("Adding ingredient {:?}", ingredient);
+    let Ok(_row) = sqlx::query!(
+      r#"
+        INSERT INTO ingredients (recipe_id, name, amount, unit) 
+        VALUES ($1, $2, $3, $4) 
+      "#,
+      &recipe_id.clone(),
+      &ingredient.name, 
+      &ingredient.amount, 
+      ingredient.measurement as Unit
+    ).execute(&mut tmx)
+      .await else {
+        tmx.rollback().await.unwrap();
+        return (StatusCode::INTERNAL_SERVER_ERROR, String::from("failed to create ingredient")).into_response();
+      };
+  }
+
+
+    tmx.commit().await.unwrap();
 
   (
     StatusCode::OK,
