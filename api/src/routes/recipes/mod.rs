@@ -22,7 +22,7 @@ pub fn recipe_routes() -> Router<Arc<AppState>> {
   Router::new()
     .route("/", post(create))
     .route("/", get(fetch))
-  // .route("/page", get(fetch_last))
+    .route("/all", get(fetch_last))
 }
 
 #[allow(non_camel_case_types)]
@@ -56,7 +56,7 @@ struct CreateRecipeBody {
   description: Option<String>,
   ingredients: Vec<Ingredient>,
   instructions: Vec<String>,
-  image: Option<String>,
+  image: String,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -67,9 +67,10 @@ struct RecipeFetchQuery {
 #[derive(Serialize, Deserialize)]
 struct FullFetchedRecipe {
   title: String,
+  id: i32,
   description: Option<String>,
   created_at: chrono::NaiveDateTime,
-  picture: Option<String>,
+  picture: String,
   author_given_name: String,
   author_family_name:String,
   author_profile: Option<String>,
@@ -83,7 +84,7 @@ struct RecipeWithoutIngredients {
   title: String,
   description: Option<String>,
   created_at: chrono::NaiveDateTime,
-  picture: Option<String>,
+  picture: String,
   author_given_name: String,
   author_family_name: String,
   author_profile: Option<String>,
@@ -140,6 +141,7 @@ async fn fetch(
 
   let res = FullFetchedRecipe {
     title: recipe.title,
+    id: recipe.id,
     description: recipe.description,
     created_at: recipe.created_at,
     picture: recipe.picture,
@@ -171,83 +173,62 @@ async fn create(
     return (StatusCode::INTERNAL_SERVER_ERROR, String::from("failed to start database transaction")).into_response();
   };
 
-  // Let's check every measurement string is valid
-  // for ingredient in &body.ingredients {
-  //   if !["g", "mg", "kg", "mL", "L", "units"]
-  //     .iter()
-  //     .map(|&x| x.to_string())
-  //     .collect::<HashSet<String>>()
-  //     .contains(&ingredient.measurement.)
-  //   {
-  //     return (
-  //       StatusCode::BAD_REQUEST,
-  //       format!("{} is not a valid measurement unit", ingredient.measurement),
-  //     )
-  //       .into_response();
-  //   }
-  // }
+  let image_bb_apikey =
+    std::env::var("IMAGE_BB_API_KEY").expect("Missing `IMAGE_BB_API_KEY` env var");
 
-  // Every measurement unit is valid
+  // Now we've got to upload the image to imagebb
+  let client = reqwest::Client::new();
 
-  let mut url: Option<String> = None;
-  if let Some(img) = body.image {
-    let image_bb_apikey =
-      std::env::var("IMAGE_BB_API_KEY").expect("Missing `IMAGE_BB_API_KEY` env var");
+  // Create request parameters
+  let mut params = HashMap::new();
+  params.insert("image", body.image);
+  let request_body = client
+    .post(format!(
+      "https://api.imgbb.com/1/upload?key={}",
+      image_bb_apikey
+    ))
+    .form(&params)
+    .send()
+    .await;
 
-    // Now we've got to upload the image to imagebb
-    let client = reqwest::Client::new();
+  let Ok(res) = request_body else {
+  return (StatusCode::INTERNAL_SERVER_ERROR, String::from("could not upload image")).into_response();
+};
 
-    // Create request parameters
-    let mut params = HashMap::new();
-    params.insert("image", img);
-    let body = client
-      .post(format!(
-        "https://api.imgbb.com/1/upload?key={}",
-        image_bb_apikey
-      ))
-      .form(&params)
-      .send()
-      .await;
+  let Ok(data): Result<serde_json::Value, reqwest::Error> = res.json().await else {
+  return (StatusCode::INTERNAL_SERVER_ERROR, String::from("could not upload image")).into_response();
+};
 
-    let Ok(res) = body else {
-    return (StatusCode::INTERNAL_SERVER_ERROR, String::from("could not upload image")).into_response();
+  let Some(url_value): Option<&str> = data["data"]["image"]["url"].as_str() else {
+  return (StatusCode::INTERNAL_SERVER_ERROR, String::from("could not upload image")).into_response();
+};
+
+let url = String::from(url_value);
+
+// Let's create the recipe
+// Let's create the ingredients
+#[derive(sqlx::FromRow)]
+struct RecipeIdWrapper {
+  id: i32
+}
+let Ok(res) = sqlx::query_as!(
+  RecipeIdWrapper,
+  r#"
+    INSERT INTO recipes (title, description, instructions, author_id, picture)
+    VALUES ($1, $2, $3, $4, $5)
+    RETURNING id
+  "#,
+    &body.title.clone(),
+    body.description.clone(),
+    &body.instructions.clone(),
+    &user.id.clone(),
+    url.clone()
+  )
+  .fetch_one(&mut tmx)
+  .await else {
+    tmx.rollback().await.unwrap();
+    return (StatusCode::INTERNAL_SERVER_ERROR, String::from("failed to create recipe")).into_response();
   };
-
-    let Ok(data): Result<serde_json::Value, reqwest::Error> = res.json().await else {
-    return (StatusCode::INTERNAL_SERVER_ERROR, String::from("could not upload image")).into_response();
-  };
-
-    let Some(url_value): Option<&str> = data["data"]["image"]["url"].as_str() else {
-    return (StatusCode::INTERNAL_SERVER_ERROR, String::from("could not upload image")).into_response();
-  };
-
-    url = Some(String::from(url_value));
-  }
-
-  // Let's create the recipe
-  // Let's create the ingredients
-  #[derive(sqlx::FromRow)]
-  struct RecipeIdWrapper {
-    id: i32
-  }
-  let Ok(res) = sqlx::query_as!(
-    RecipeIdWrapper,
-    r#"
-      INSERT INTO recipes (title, description, instructions, author_id, picture)
-      VALUES ($1, $2, $3, $4, $5)
-      RETURNING id
-    "#,
-      &body.title.clone(),
-      body.description.clone(),
-      &body.instructions.clone(),
-      &user.id.clone(),
-      url.clone()
-    )
-    .fetch_one(&mut tmx)
-    .await else {
-      tmx.rollback().await.unwrap();
-      return (StatusCode::INTERNAL_SERVER_ERROR, String::from("failed to create recipe")).into_response();
-    };
 
   let recipe_id: i32 = res.id;
 
@@ -289,37 +270,67 @@ struct FetchedRecipe {
   author_profile: Option<String>,
 }
 
-// #[debug_handler]
-// async fn fetch_last(State(state): State<Arc<AppState>>) -> impl IntoResponse {
-//   let cursor = recipe::Entity::find()
-//     .find_also_related(user::Entity)
-//     .paginate(&state.db, 20);
-//   match cursor.fetch().await {
-//     Ok(values) => (
-//       StatusCode::OK,
-//       axum::Json(
-//         values
-//           .iter()
-//           .map(|(recipe, user)| FetchedRecipe {
-//             id: recipe.id.clone(),
-//             title: recipe.title.clone(),
-//             picture: recipe.picture.clone(),
-//             author_first_name: match user {
-//               Some(author) => Some(author.given_name.clone()),
-//               None => None,
-//             },
-//             author_last_name: match user {
-//               Some(author) => Some(author.family_name.clone()),
-//               None => None,
-//             },
-//             author_profile: match user {
-//               Some(author) => author.picture.clone(),
-//               None => None,
-//             },
-//           })
-//           .collect::<Vec<FetchedRecipe>>(),
-//       ),
-//     ),
-//     Err(..) => (StatusCode::INTERNAL_SERVER_ERROR, axum::Json(vec![])),
-//   }
-// }
+#[debug_handler]
+async fn fetch_last(State(state): State<Arc<AppState>>) -> impl IntoResponse {
+
+  let mut res: Vec<FullFetchedRecipe> = Vec::new();
+
+  let Ok(recipes) = sqlx::query_as!(
+    RecipeWithoutIngredients, 
+    r#"
+    SELECT 
+      recipes.id AS "id",
+      recipes.title AS "title",
+      recipes.description AS "description",
+      recipes.instructions AS "instructions", 
+      recipes.created_at AS "created_at",
+      recipes.picture AS "picture",
+      users.given_name AS "author_given_name",
+      users.family_name AS "author_family_name",
+      users.picture AS "author_profile"
+    FROM 
+      recipes
+      JOIN users ON recipes.author_id = users.id
+  "#)
+    .fetch_all(&state.db)
+    .await else {
+      return (StatusCode::NOT_FOUND, String::from("could not find recipe")).into_response();
+    };
+
+
+    for recipe in recipes {
+      // Let's look for the ingredients now
+      let Ok(ingredients) = sqlx::query_as!(
+        Ingredient,
+        r#"
+          SELECT 
+            name,
+            amount,
+            unit AS "measurement: Unit"
+          FROM 
+            ingredients
+          WHERE recipe_id = $1
+        "#, 
+        recipe.id
+      ).fetch_all(&state.db).await else {
+        return (StatusCode::NOT_FOUND, String::from("could not find ingredients")).into_response();
+      };
+
+      let full_fetched_recipe = FullFetchedRecipe {
+        title: recipe.title,
+        id: recipe.id,
+        description: recipe.description,
+        created_at: recipe.created_at,
+        picture: recipe.picture,
+        author_given_name: recipe.author_given_name,
+        author_family_name: recipe.author_family_name,
+        author_profile: recipe.author_profile,
+        instructions: recipe.instructions,
+        ingredients
+      };
+
+      res.push(full_fetched_recipe);
+    }
+
+  (StatusCode::OK, axum::Json(Some(res))).into_response()
+}

@@ -28,7 +28,7 @@ export default function SignInEmail() {
       setIsErrorVisible(true);
       return;
     }
-    navigate(`/auth/email-sent`, {
+    navigate(`/auth/email/sent`, {
       state: {
         email: emailAddressInputRef.current!.value,
       },

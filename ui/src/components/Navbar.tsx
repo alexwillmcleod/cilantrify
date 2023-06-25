@@ -27,13 +27,13 @@ export default function Navbar() {
     <div className="flex flex-row p-10 justify-between sticky items-center">
       <span>
         <a
-          href="/"
+          href="/dashboard"
           className="font-bold font-display text-accent-green text-2xl sm:text-4xl"
         >
           Cilantrify
         </a>
       </span>
-      <a href="/dashboard">
+      <a>
         <img
           className="w-12 sm:w-14 rounded-full"
           src={profilePicture}

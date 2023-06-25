@@ -9,8 +9,8 @@ interface Recipe {
   id: number;
   title: string;
   picture?: string;
-  author_first_name: string;
-  author_last_name: string;
+  author_given_name: string;
+  author_family_name: string;
   author_profile?: string;
 }
 
@@ -26,7 +26,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const res = await axios.get('recipe/page', {
+      const res = await axios.get('recipe/all', {
         headers: {
           Authorization: getHeader(),
         },
@@ -52,8 +52,8 @@ export default function Dashboard() {
             title={element.title}
             picture={element.picture}
             key={index}
-            firstName={element.author_first_name}
-            lastName={element.author_last_name}
+            firstName={element.author_given_name}
+            lastName={element.author_family_name}
           />
         ))}
       </div>

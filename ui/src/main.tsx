@@ -27,7 +27,8 @@ import ViewRecipe from './pages/ViewRecipe';
 import SignInPasswordless from './pages/auth/SignInEmail';
 import SignInEmail from './pages/auth/SignInEmail';
 import EmailSent from './pages/auth/EmailSent';
-import VerifyEmail from './pages/auth/VerifyEmail';
+import VerifyEmail from './pages/auth/CreateAccount';
+import CreateAccount from './pages/auth/CreateAccount';
 
 interface CreateRecipeState {
   instructions: string[];
@@ -68,19 +69,25 @@ const router = createBrowserRouter([
       },
       {
         path: 'email',
-        element: <SignInEmail />,
+        children: [
+          {
+            path: '',
+            element: <SignInEmail />,
+          },
+          {
+            path: 'sent',
+            element: <EmailSent />,
+          },
+          {
+            path: 'create',
+            element: <CreateAccount />,
+          },
+        ],
       },
-      {
-        path: 'email-sent',
-        element: <EmailSent />,
-      },
+      ,
       {
         path: 'sign-in',
         element: <SignIn />,
-      },
-      {
-        path: 'verify/:code',
-        element: <VerifyEmail />,
       },
     ],
   },

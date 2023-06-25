@@ -33,7 +33,8 @@ use super::jwt::UserClaims;
 pub fn sso_routes() -> Router<Arc<AppState>> {
   Router::new()
     .route("/", post(continue_with_sso))
-    .route("/callback", post(continue_with_sso_callback))
+    .route("/sign-in", post(sign_in))
+    .route("/create", post(create_account))
 }
 
 #[derive(Deserialize, Serialize)]
@@ -77,7 +78,7 @@ async fn continue_with_sso(
     .subject("Verify Cilantrify Account")
     .header(ContentType::TEXT_PLAIN)
     .body(format!(
-      "Hello! Great to have you on board. Finish up with https://cilantrify.com/auth/verify/{}",
+      "Hello! Great to have you on board. Your code is {}",
       &code
     )) else {
       return (StatusCode::INTERNAL_SERVER_ERROR, String::from("could not write email")).into_response();
@@ -118,16 +119,16 @@ async fn continue_with_sso(
 }
 
 #[derive(Deserialize, Debug)]
-struct ContinueWithSSOCallbackBody {
+struct CreateAccountBody {
   code: i32,
   email: String,
-  given_name: Option<String>,
-  family_name: Option<String>,
+  given_name: String,
+  family_name: String,
 }
 
-async fn continue_with_sso_callback(
+async fn create_account(
   State(state): State<Arc<AppState>>,
-  Json(body): Json<ContinueWithSSOCallbackBody>,
+  Json(body): Json<CreateAccountBody>,
 ) -> Response {
   // Let's find the code
   let Ok(Some(_)) = sqlx::query!(
@@ -146,22 +147,27 @@ async fn continue_with_sso_callback(
     return (StatusCode::UNAUTHORIZED, String::from("invalid code")).into_response();
   };
 
-  match (&body.given_name.clone(), &body.family_name.clone()) {
-    (Some(given_name), Some(family_name)) => {
-      let _ = sqlx::query!(
-        r#"
+  match sqlx::query!(
+    r#"
         INSERT INTO users (email, given_name, family_name) 
         VALUES ($1, $2, $3) 
       "#,
-        &body.email.clone(),
-        given_name,
-        family_name,
+    &body.email.clone(),
+    &body.given_name.clone(),
+    &body.family_name.clone(),
+  )
+  .execute(&state.db)
+  .await
+  {
+    Ok(..) => {}
+    Err(..) => {
+      return (
+        StatusCode::INTERNAL_SERVER_ERROR,
+        String::from("failed to create user"),
       )
-      .fetch_one(&state.db)
-      .await;
+        .into_response()
     }
-    _ => {}
-  };
+  }
 
   #[derive(sqlx::FromRow)]
   struct UserRow {
@@ -182,6 +188,57 @@ async fn continue_with_sso_callback(
   .fetch_one(&state.db)
   .await else {
     return (StatusCode::INTERNAL_SERVER_ERROR, String::from("failed to create user")).into_response();
+  };
+  let Ok(token) =
+    UserClaims::new(user.id, user.given_name, user.family_name).sign() else {
+      return (StatusCode::INTERNAL_SERVER_ERROR, String::from("could not create session token")).into_response();
+    };
+
+  (StatusCode::OK, token).into_response()
+}
+
+#[derive(Deserialize, Debug)]
+struct SignInBody {
+  code: i32,
+  email: String,
+}
+
+async fn sign_in(State(state): State<Arc<AppState>>, Json(body): Json<SignInBody>) -> Response {
+  // Let's find the code
+  let Ok(Some(_)) = sqlx::query!(
+    r#"
+      SELECT sign_in_codes.id
+      FROM 
+        sign_in_codes
+      WHERE code = $1 AND expires_at > $2 AND email = $3
+    "#,
+    &body.code.clone(),
+    Utc::now().naive_utc(),
+    &body.email.clone()
+  )
+    .fetch_optional(&state.db)
+    .await else {
+    return (StatusCode::UNAUTHORIZED, String::from("invalid code")).into_response();
+  };
+  #[derive(sqlx::FromRow)]
+  struct UserRow {
+    id: i32,
+    given_name: String,
+    family_name: String,
+  }
+
+  let Ok(user) = sqlx::query_as!(
+    UserRow,
+    r#"
+      SELECT id, given_name, family_name
+      FROM users
+      WHERE email = $1
+    "#,
+    &body.email.clone()
+  )
+  .fetch_one(&state.db)
+  .await else {
+    return (StatusCode::NOT_FOUND, String::from("failed to find user")).into_response();
   };
   let Ok(token) =
     UserClaims::new(user.id, user.given_name, user.family_name).sign() else {

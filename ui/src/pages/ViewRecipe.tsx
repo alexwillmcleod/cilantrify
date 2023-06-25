@@ -37,31 +37,32 @@ export default function ViewRecipe() {
             {recipe.title}
           </h2>
         </span>{' '}
-        <div className="flex flex-row gap-10 px-10">
-          <div className="flex flex-col gap-4 max-w-2xl min-w-fit">
-            <h4 className="font-bold text-accent-blue text-2xl">Ingredients</h4>
-            <ul className="flex flex-col w-fit list-disc list-inside text-lg gap-1">
-              {recipe.ingredients ? (
-                recipe.ingredients.map((element: IngredientListProps) => (
-                  <li>{element.name}</li>
-                ))
-              ) : (
-                <></>
-              )}
-            </ul>
-          </div>
-          <div className="flex flex-col gap-4">
-            <h4 className="font-bold text-accent-blue text-2xl">
-              Instructions
-            </h4>
-            <ol className="flex flex-col gap-8 text-lg list-decimal list-inside">
-              {recipe.instructions ? (
-                recipe.instructions.map((element: string) => <li>{element}</li>)
-              ) : (
-                <></>
-              )}
-            </ol>
-          </div>
+        <div className="flex flex-col gap-4 max-w-2xl min-w-fit">
+          <h4 className="font-bold text-accent-blue text-2xl">Ingredients</h4>
+          <ul className="flex flex-col w-fit list-disc list-inside text-lg gap-1">
+            {recipe.ingredients ? (
+              recipe.ingredients.map((element: IngredientListProps) => (
+                <div className="flex flex-row">
+                  <li>
+                    {element.name} {element.amount}
+                    {element.measurement}
+                  </li>
+                </div>
+              ))
+            ) : (
+              <></>
+            )}
+          </ul>
+        </div>
+        <div className="flex flex-col gap-4">
+          <h4 className="font-bold text-accent-blue text-2xl">Instructions</h4>
+          <ol className="flex flex-col gap-8 text-lg list-decimal list-inside">
+            {recipe.instructions ? (
+              recipe.instructions.map((element: string) => <li>{element}</li>)
+            ) : (
+              <></>
+            )}
+          </ol>
         </div>
       </div>
     </div>
