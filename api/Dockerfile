@@ -1,23 +1,11 @@
-FROM rust:latest as builder
+FROM rustlang/rust:nightly AS builder
 
-WORKDIR /usr/src/app
-COPY . .
-# Will build and cache the binary and dependent crates in release mode
-RUN --mount=type=cache,target=/usr/local/cargo,from=rust:latest,source=/usr/local/cargo \
-    --mount=type=cache,target=target \
-    cargo build --release && mv ./target/release/cilantrify-api ./cilantrify-api
-
-# Runtime image
-FROM debian:bullseye-slim
-
-# Run as "app" user
-RUN useradd -ms /bin/bash app
-
-USER app
 WORKDIR /app
+COPY . /app
+RUN cargo +nightly build --release
 
-# Get compiled binaries from builder's cargo install directory
-COPY --from=builder /usr/src/app/cilantrify-api /app/cilantrify-api
+FROM rustlang/rust:nightly 
 
-# Run the app
-CMD ./cilantrify-api
+COPY --from=builder /app/target/release/cilantrify-api /cilantrify-api
+
+CMD ["/cilantrify-api"]
