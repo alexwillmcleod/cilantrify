@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import axios from 'axios';
-import { useLocation, useNavigate, useParams } from 'react-router';
-import { useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router';
+// import { useSearchParams } from 'react-router-dom';
 import ContinueButton from '../../components/ContinueButton';
 import useAuth from '../../hooks/useAuth';
 

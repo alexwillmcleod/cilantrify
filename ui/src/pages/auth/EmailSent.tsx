@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import axios from 'axios';
-import { useSearchParams, useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import useAuth from '../../hooks/useAuth';
 
 export default function EmailSent() {

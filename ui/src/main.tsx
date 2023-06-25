@@ -24,10 +24,9 @@ import {
 // import { FileContent } from 'use-file-picker';
 // import { Redirect } from 'react-router-dom';
 import ViewRecipe from './pages/ViewRecipe';
-import SignInPasswordless from './pages/auth/SignInEmail';
 import SignInEmail from './pages/auth/SignInEmail';
 import EmailSent from './pages/auth/EmailSent';
-import VerifyEmail from './pages/auth/CreateAccount';
+// import VerifyEmail from './pages/auth/CreateAccount';
 import CreateAccount from './pages/auth/CreateAccount';
 
 interface CreateRecipeState {

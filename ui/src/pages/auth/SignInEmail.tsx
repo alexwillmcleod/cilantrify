@@ -49,7 +49,7 @@ export default function SignInEmail() {
           />
           <ContinueButton
             isErrorVisible={isErrorVisible}
-            errorMessage="Email is invalid"
+            errorMessage={errorMessage}
             onClick={handleContinueClick}
           />
         </span>
