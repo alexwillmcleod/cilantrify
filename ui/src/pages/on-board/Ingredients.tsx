@@ -33,6 +33,10 @@ export default function RecipeCreateIngredients() {
     navigate('/recipe/create/instructions');
   };
 
+  const handleReturnClick = () => {
+    navigate('/dashboard');
+  };
+
   const handleAddElement = () => {
     const name = nameRef.current?.value;
     const amount = amountRef.current?.valueAsNumber;
@@ -130,6 +134,7 @@ export default function RecipeCreateIngredients() {
               onClick={handleContinueClick}
               isErrorVisible={isErrorVisible}
               errorMessage={errorMessage}
+              onReturn={handleReturnClick}
             />
           </span>
         </div>

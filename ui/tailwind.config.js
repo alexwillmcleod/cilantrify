@@ -18,5 +18,5 @@ export default {
       'light-grey': '#444477',
     },
   },
-  plugins: [],
+  plugins: [require('daisyui')],
 };

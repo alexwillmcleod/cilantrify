@@ -2,6 +2,7 @@ import defaultProfilePicture from '../assets/profile.svg';
 import useAuth from '../hooks/useAuth';
 import axios from 'axios';
 import { useState, useEffect } from 'react';
+import UserIcon from './UserIcon';
 
 export default function Navbar() {
   const [profilePicture, setProfilePicture] = useState<string>(
@@ -33,12 +34,7 @@ export default function Navbar() {
           Cilantrify
         </a>
       </span>
-      <a>
-        <img
-          className="w-12 sm:w-14 rounded-full"
-          src={profilePicture}
-        ></img>
-      </a>
+      <UserIcon src={profilePicture} />
     </div>
   );
 }

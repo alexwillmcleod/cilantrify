@@ -44,6 +44,10 @@ export default function RecipeCreateSuccess() {
     navigate('/dashboard');
   };
 
+  const handleReturnClick = () => {
+    navigate('/recipe/create/images');
+  };
+
   return (
     <div className="flex flex-col justify-center items-center w-full h-max">
       <div className="flex flex-row gap-20 px-10 py-4 h-full w-full justify-center">
@@ -114,12 +118,20 @@ export default function RecipeCreateSuccess() {
               </ul>
             </span>
           </div>
-          <button
-            onClick={handleContinueClick}
-            className="bg-accent-blue py-1 px-3 rounded-md w-fit text-sm text-white"
-          >
-            I love it!
-          </button>
+          <span className="flex flex-row gap-3">
+            <button
+              onClick={handleContinueClick}
+              className="bg-accent-blue py-1 px-3 rounded-md w-fit text-sm text-white"
+            >
+              I love it!
+            </button>
+            <button
+              onClick={handleReturnClick}
+              className="bg-accent-blue py-1 px-3 rounded-md w-fit text-sm text-white"
+            >
+              Let's change it
+            </button>
+          </span>
         </div>
       </div>
     </div>

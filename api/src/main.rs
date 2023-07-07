@@ -32,11 +32,13 @@ async fn main() -> Result<()> {
     .with_test_writer()
     .init();
 
+  let ui_host = std::env::var("UI_HOST").expect("UI_HOST environment variable must be set.");
+
   let cors = CorsLayer::new()
     .allow_methods([Method::GET, Method::POST])
     .allow_credentials(true)
     .allow_headers([AUTHORIZATION, CONTENT_TYPE])
-    .allow_origin("http://localhost:5173".parse::<HeaderValue>().unwrap());
+    .allow_origin(ui_host.parse::<HeaderValue>().unwrap());
 
   let auth_routes = cilantrify_api::routes::auth::auth_routes();
   let recipe_routes = cilantrify_api::routes::recipes::recipe_routes();

@@ -10,7 +10,7 @@ export default function Index() {
             There's a better way to cook
           </p>
           <Link
-            className="bg-accent-green px-4 py-2 w-fit rounded-xl font-bold text-white text-lg max-sm:text-sm"
+            className="btn"
             to="/auth/sign-in"
           >
             Get Cooking!
