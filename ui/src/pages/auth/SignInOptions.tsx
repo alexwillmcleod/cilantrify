@@ -1,6 +1,6 @@
-import Footer from '../components/Footer';
+import Footer from '../../components/Footer';
 import { A } from '@solidjs/router';
-import Navbar from '../components/Navbar';
+import Navbar from '../../components/Navbar';
 import welcomeTreePerson from '/welcome-tree-person.svg';
 import googleIcon from '/google-icon.svg';
 import gmailIcon from '/gmail-icon.svg';
@@ -13,9 +13,9 @@ export default function SignInOptions() {
         <div class="hero-content flex-col lg:flex-row">
           <img
             src={welcomeTreePerson}
-            class="max-w-sm "
+            class="max-w-sm hidden lg:flex"
           />
-          <div class="flex flex-col gap-4 p-40 justify-center items-center">
+          <div class="flex flex-col gap-4 lg:p-40 p-2 justify-center items-center">
             <h1 class="text-4xl font-bold ">Continue With:</h1>
             <span class="flex flex-row gap-4 items-center justify-center">
               <A

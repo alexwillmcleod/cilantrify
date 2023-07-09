@@ -10,6 +10,9 @@
   },
   "dependencies": {
     "@solidjs/router": "^0.8.2",
+    "@types/js-cookie": "^3.0.3",
+    "axios": "^1.4.0",
+    "js-cookie": "^3.0.5",
     "solid-js": "^1.7.7"
   },
   "devDependencies": {
