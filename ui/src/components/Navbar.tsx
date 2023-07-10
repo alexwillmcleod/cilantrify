@@ -1,40 +1,63 @@
-import defaultProfilePicture from '../assets/profile.svg';
-import useAuth from '../hooks/useAuth';
-import axios from 'axios';
-import { useState, useEffect } from 'react';
-import UserIcon from './UserIcon';
+import defaultAvatar from '/default-avatar.svg';
+import searchIcon from '/search-icon.svg';
+import { A } from '@solidjs/router';
 
 export default function Navbar() {
-  const [profilePicture, setProfilePicture] = useState<string>(
-    defaultProfilePicture
-  );
-  // const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const { getHeader } = useAuth();
-
-  useEffect(() => {
-    const fetchData = async () => {
-      const res = await axios.get('/auth/info', {
-        headers: {
-          Authorization: getHeader(),
-        },
-      });
-      setProfilePicture(res.data['picture'] || profilePicture);
-      // if (res.data != null) setIsLoggedIn(true);
-    };
-    fetchData();
-  }, []);
-
   return (
-    <div className="flex flex-row p-10 justify-between sticky items-center">
-      <span>
-        <a
-          href="/dashboard"
-          className="font-bold font-display text-accent-green text-2xl sm:text-4xl"
+    <div class="navbar bg-base-100 p-10">
+      {/* <div class="navbar-start"></div> */}
+      <div class="navbar-start">
+        <A
+          href="/"
+          class="font-display font-bold text-3xl text-primary"
         >
           Cilantrify
-        </a>
-      </span>
-      <UserIcon src={profilePicture} />
+        </A>
+      </div>
+      {/* <div class="navbar-center">
+        <div class="flex flex-row gap-4 justify-center items-center w-full max-w-xs">
+          <span class="flex flex-row ">
+            <input
+              type="text"
+              placeholder="Search"
+              class="input input-bordered w-full max-w-xs"
+            />
+            <button class="btn btn-ghost ">
+              <img src={searchIcon} />
+            </button>
+          </span>
+        </div>
+      </div> */}
+      <div class="navbar-end flex-row gap-12">
+        <div class="dropdown dropdown-end">
+          <label
+            tabindex="0"
+            class="w-16 h-16 btn btn-ghost btn-circle avatar"
+          >
+            <img
+              class="rounded-full"
+              src={defaultAvatar}
+            />
+          </label>
+          <ul
+            tabindex="0"
+            class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52"
+          >
+            <li>
+              <a class="justify-between">
+                Profile
+                <span class="badge">New</span>
+              </a>
+            </li>
+            <li>
+              <a>Settings</a>
+            </li>
+            <li>
+              <a>Logout</a>
+            </li>
+          </ul>
+        </div>
+      </div>
     </div>
   );
 }

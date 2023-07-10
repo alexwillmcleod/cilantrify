@@ -1,5 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&display=swap');
-@import url('https://fonts.cdnfonts.com/css/clementepdao');
+@import 'https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&display=swap';
+@import 'https://fonts.cdnfonts.com/css/clementepdao';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -10,13 +10,6 @@
   box-sizing: border-box;
 }
 
-body {
-  width: 100vw;
-  height: 100vh;
-  margin: 0;
-}
-
-#root {
-  width: 100vw;
-  height: 100vh;
+.btn {
+  text-transform: none;
 }
