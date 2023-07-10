@@ -1,6 +1,5 @@
 import IngredientElement, { IngredientElementProps } from './IngredientElement';
 import { createSignal } from 'solid-js';
-import plusIcon from '/plus-icon.svg';
 
 interface IngredientsProps {
   ingredients: Function;
@@ -14,7 +13,7 @@ export default function Ingredients({
   const [newIngredientName, setNewIngredientName] = createSignal('');
   const [newIngredientAmount, setNewIngredientAmount] = createSignal('');
   const [newIngredientMeasurement, setNewIngredientMeasurement] =
-    createSignal('');
+    createSignal('Units');
 
   const handleRemoveElement = (index: number) => {
     setIngredients(ingredients().filter((_: any, i: number) => i != index));
@@ -26,13 +25,13 @@ export default function Ingredients({
       ...ingredients(),
       {
         name: newIngredientName(),
-        amount: newIngredientAmount(),
+        amount: Number.parseInt(newIngredientAmount()),
         measurement: newIngredientMeasurement(),
       },
     ]);
     setNewIngredientName('');
     setNewIngredientAmount('');
-    setNewIngredientMeasurement('');
+    setNewIngredientMeasurement('Units');
   };
 
   return (
@@ -95,7 +94,7 @@ export default function Ingredients({
           </button>
           <h3 class="font-bold text-lg">Add Ingredient</h3>
           <div class="flex flex-col gap-1 ">
-            <p class="text-display font-bold text-md">Name</p>
+            <p class="text-display text-md">Name</p>
             <input
               onChange={(e) => setNewIngredientName(e.target.value)}
               class="input font-normal input-bordered w-full max-w-xs"
@@ -103,7 +102,7 @@ export default function Ingredients({
             />
           </div>
           <div class="flex flex-col gap-1 ">
-            <p class="text-display font-bold text-md">Amount</p>
+            <p class="text-display text-md">Amount</p>
             <input
               onChange={(e) => setNewIngredientAmount(e.target.value)}
               type="number"
@@ -112,22 +111,21 @@ export default function Ingredients({
             />
           </div>
           <div class="flex flex-col gap-1 ">
-            <p class="text-display font-bold text-md">Measurement</p>
+            <p class="text-display text-md">Measurement</p>
             <select
               onChange={(e) => setNewIngredientMeasurement(e.target.value)}
               class="select font-normal select-bordered w-full max-w-xs"
               value={newIngredientMeasurement()}
             >
               <option
-                disabled
+                value="Units"
                 selected
-              />
+              ></option>
               <option>mL</option>
               <option>L</option>
               <option>g</option>
               <option>mg</option>
               <option>kg</option>
-              <option>units</option>
             </select>
           </div>
           <div class="modal-action">

@@ -1,11 +1,20 @@
-import Footer from '../../components/Footer';
 import { A } from '@solidjs/router';
 import Navbar from '../../components/Navbar';
 import welcomeTreePerson from '/welcome-tree-person.svg';
 import googleIcon from '/google-icon.svg';
 import gmailIcon from '/gmail-icon.svg';
+import { useAuth } from '../../hooks/useAuth';
+import { createEffect } from 'solid-js';
+import { useNavigate } from '@solidjs/router';
 
 export default function SignInOptions() {
+  const { user } = useAuth()!;
+  const navigate = useNavigate();
+
+  createEffect(() => {
+    if (user()) navigate('/for-you');
+  });
+
   return (
     <div class="min-h-screen">
       <Navbar />

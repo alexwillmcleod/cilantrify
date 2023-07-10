@@ -1,6 +1,5 @@
 import InstructionElement from './InstructionElement';
 import { createSignal } from 'solid-js';
-import plusIcon from '/plus-icon.svg';
 
 interface InstructionsProps {
   instructions: Function;

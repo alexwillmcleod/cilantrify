@@ -1,9 +1,7 @@
-import verticalThreeDots from '/vertical-three-dots.svg';
-
 export interface IngredientElementProps {
   name: string;
   amount: number;
-  measurement: 'mL' | 'L' | 'g' | 'ng' | 'kg' | 'units';
+  measurement: 'mL' | 'L' | 'g' | 'ng' | 'kg' | 'Units';
 }
 
 export default function IngredientElement({
@@ -56,7 +54,7 @@ export default function IngredientElement({
         <p class="text-ellipsis overflow-hidden font-bold pr-10">{name}</p>
         <p>
           {amount}
-          {measurement != 'units' ? measurement : ''}
+          {measurement != 'Units' ? measurement : ''}
         </p>
       </div>
     </div>
