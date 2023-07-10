@@ -1,23 +1,18 @@
 // import { useQueryParams } from '@solid-js/router';
 import { useSearchParams, useNavigate, A } from '@solidjs/router';
 import { createEffect, createSignal } from 'solid-js';
-import { sendRequest } from '../../utils/rest';
 import { useAuth } from '../../hooks/useAuth';
 
 export default function GoogleCallback() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { login } = useAuth();
   const [isFailed, setIsFailed] = createSignal<boolean>(false);
+  const { handleGoogleLogin } = useAuth()!;
 
   createEffect(async () => {
     const code: string = searchParams.code;
     try {
-      const res = await sendRequest('/auth/google/callback', 'POST', {
-        code,
-      });
-      const token = res.data;
-      login(token);
+      handleGoogleLogin(code);
       navigate('/');
     } catch (err) {
       console.error(err);

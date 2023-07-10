@@ -1,3 +1,7 @@
+// interface RecipePreviewProps {
+
+// }
+
 export default function RecipePreview(props: any) {
   return (
     <div class="mockup-window border bg-base-200 border-base-300 p-5 mx-10 mb-36">

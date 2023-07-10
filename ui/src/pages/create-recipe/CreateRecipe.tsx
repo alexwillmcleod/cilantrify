@@ -1,11 +1,15 @@
 import Navbar from '../../components/Navbar';
+import axios from 'axios';
 import { createEffect, createSignal, JSXElement, Signal } from 'solid-js';
 import Ingredients from './Ingredients';
 import Instructions from './Instructions';
 import Name from './Name';
 import Image from './Image';
 import Confirm from './Confirm';
+import { A, useNavigate } from '@solidjs/router';
 import { IngredientElementProps } from './IngredientElement';
+import { useAuth } from '../../hooks/useAuth';
+import ImageStep from './Image';
 
 const StepProgressBar = (props: any) => (
   <div class="w-[50vw] steps invisible md:visible steps-horizontal">
@@ -48,6 +52,9 @@ const StepProgressBar = (props: any) => (
 );
 
 export default function CreateRecipe() {
+  const { user } = useAuth()!;
+  const navigate = useNavigate();
+
   const [step, setStep]: [Function, Function] = createSignal<number>(0);
 
   const [snackBarElements, setSnackBarElements] = createSignal<JSXElement[]>(
@@ -55,12 +62,38 @@ export default function CreateRecipe() {
   );
 
   const [name, setName] = createSignal<string>('');
+  const [description, setDescription] = createSignal<string>('');
   const [ingredients, setIngredients] = createSignal<IngredientElementProps[]>(
     []
   );
   const [instructions, setInstructions] = createSignal<string[]>([]);
-  const [image, setImage] = createSignal<File | undefined>(undefined);
+  const [image, setImage] = createSignal<string | undefined>(undefined);
   const [imageName, setImageName] = createSignal<string>('');
+
+  const handleSubmitRecipe = async () => {
+    try {
+      const res = await axios.post(
+        '/recipe',
+        {
+          title: name(),
+          description: description(),
+          ingredients: ingredients(),
+          instructions: instructions(),
+          image: image()!.split(',')[1],
+        },
+        {}
+      );
+      navigate('/for-you');
+    } catch (err) {
+      console.error(err);
+      addSnackBar(
+        <div class="alert alert-info transition-all">
+          <span>Failed to create recipe</span>
+        </div>,
+        2000
+      );
+    }
+  };
 
   const addSnackBar = (element: JSXElement, ms: number) => {
     setSnackBarElements([...snackBarElements(), element]);
@@ -70,6 +103,14 @@ export default function CreateRecipe() {
   };
 
   const goToStep = (index: number) => {
+    // Check if they are signed in first
+    if (!user()) {
+      (
+        window as Window & typeof globalThis & { unauthenticated_modal: any }
+      ).unauthenticated_modal.showModal();
+      return;
+    }
+
     console.log(`index = ${index}, name = ${name}`);
     if (index > 0 && !name()) {
       addSnackBar(
@@ -131,6 +172,8 @@ export default function CreateRecipe() {
           <Name
             name={name}
             setName={setName}
+            description={description}
+            setDescription={setDescription}
           />,
           <Ingredients
             ingredients={ingredients}
@@ -140,7 +183,7 @@ export default function CreateRecipe() {
             instructions={instructions}
             setInstructions={setInstructions}
           />,
-          <Image
+          <ImageStep
             image={image}
             setImage={setImage}
             imageName={imageName}
@@ -168,7 +211,13 @@ export default function CreateRecipe() {
               Back
             </button>
             <button
-              onClick={nextStep}
+              onClick={() => {
+                if (step() == 4) {
+                  handleSubmitRecipe();
+                } else {
+                  nextStep();
+                }
+              }}
               class={`btn btn-primary `}
             >
               {step() == 4 ? "Let's Go!" : 'Continue'}
@@ -183,6 +232,25 @@ export default function CreateRecipe() {
       >
         {snackBarElements()}
       </div>
+      <dialog
+        id="unauthenticated_modal"
+        class="modal modal-bottom sm:modal-middle"
+      >
+        <form
+          method="dialog"
+          class="modal-box"
+        >
+          <h3 class="text-lg">You must be signed in to create a recipe</h3>
+          <div class="modal-action">
+            <A
+              href="/auth/options"
+              class="btn btn-primary"
+            >
+              Sign In
+            </A>
+          </div>
+        </form>
+      </dialog>
     </div>
   );
 }

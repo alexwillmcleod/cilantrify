@@ -1,8 +1,11 @@
 import defaultAvatar from '/default-avatar.svg';
 import searchIcon from '/search-icon.svg';
-import { A } from '@solidjs/router';
+import { A, useNavigate } from '@solidjs/router';
+import { useAuth } from '../hooks/useAuth';
 
 export default function Navbar() {
+  const { user, handleLogout } = useAuth()!;
+  const navigate = useNavigate();
   return (
     <div class="navbar bg-base-100 p-10">
       {/* <div class="navbar-start"></div> */}
@@ -36,7 +39,7 @@ export default function Navbar() {
           >
             <img
               class="rounded-full"
-              src={defaultAvatar}
+              src={user() && user()!.picture ? user()!.picture : defaultAvatar}
             />
           </label>
           <ul
@@ -52,9 +55,18 @@ export default function Navbar() {
             <li>
               <a>Settings</a>
             </li>
-            <li>
-              <a>Logout</a>
-            </li>
+            {user() && (
+              <li>
+                <button
+                  onClick={() => {
+                    handleLogout();
+                    navigate('/');
+                  }}
+                >
+                  Logout
+                </button>
+              </li>
+            )}
           </ul>
         </div>
       </div>

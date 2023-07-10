@@ -1,18 +1,22 @@
 import RecipePreview from '../../components/RecipePreview';
-import { Accessor } from 'solid-js';
+import { Accessor, createEffect, createSignal } from 'solid-js';
 import { IngredientElementProps } from './IngredientElement';
 
 export default function Confirm(props: {
   name: Accessor<string>;
-  image: Accessor<File | undefined>;
+  image: Accessor<string | undefined>;
   ingredients: Accessor<IngredientElementProps[]>;
   instructions: Accessor<string[]>;
 }) {
+  createEffect(() => {
+    console.log(props.image()!);
+  });
+
   return (
     <div class="p-100">
       {props.image() && (
         <RecipePreview
-          image={URL.createObjectURL(props.image()!)}
+          image={props.image()!}
           name={props.name()}
           ingredients={props.ingredients()}
           instructions={props.instructions()}
