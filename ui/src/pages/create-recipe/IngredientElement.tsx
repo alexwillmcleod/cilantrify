@@ -1,5 +1,3 @@
-import verticalThreeDots from '/vertical-three-dots.svg';
-
 export interface IngredientElementProps {
   name: string;
   amount: number;

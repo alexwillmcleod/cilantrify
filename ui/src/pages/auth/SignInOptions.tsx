@@ -1,4 +1,3 @@
-import Footer from '../../components/Footer';
 import { A } from '@solidjs/router';
 import Navbar from '../../components/Navbar';
 import welcomeTreePerson from '/welcome-tree-person.svg';

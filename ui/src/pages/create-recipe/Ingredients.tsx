@@ -1,6 +1,5 @@
 import IngredientElement, { IngredientElementProps } from './IngredientElement';
 import { createSignal } from 'solid-js';
-import plusIcon from '/plus-icon.svg';
 
 interface IngredientsProps {
   ingredients: Function;

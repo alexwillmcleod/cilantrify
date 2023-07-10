@@ -1,7 +1,6 @@
 import Navbar from '../components/Navbar';
 import RecipePreview from '../components/RecipePreview';
 import landingPageCooking from '/landing-page-cooking.svg';
-import lentilRecipeDemo from '/lentil-recipe-demo.svg';
 import lentilMeatballsExample from '/lentil-meatballs-example.jpg';
 import plusIcon from '/plus-icon.svg';
 import shareIcon from '/share-icon.svg';

@@ -1,10 +1,9 @@
 import Navbar from '../../components/Navbar';
 import axios from 'axios';
-import { createEffect, createSignal, JSXElement, Signal } from 'solid-js';
+import { createSignal, JSXElement } from 'solid-js';
 import Ingredients from './Ingredients';
 import Instructions from './Instructions';
 import Name from './Name';
-import Image from './Image';
 import Confirm from './Confirm';
 import { A, useNavigate } from '@solidjs/router';
 import { IngredientElementProps } from './IngredientElement';
@@ -72,7 +71,7 @@ export default function CreateRecipe() {
 
   const handleSubmitRecipe = async () => {
     try {
-      const res = await axios.post(
+      await axios.post(
         '/recipe',
         {
           title: name(),

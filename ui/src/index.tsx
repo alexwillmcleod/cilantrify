@@ -7,7 +7,6 @@ import SignInOptions from './pages/auth/SignInOptions';
 import CreateRecipe from './pages/create-recipe/CreateRecipe';
 import GoogleCallback from './pages/auth/GoogleCallback';
 import { AuthProvider } from './hooks/useAuth';
-import { useAuth } from './hooks/useAuth';
 import axios from 'axios';
 import ForYou from './pages/for-you/ForYou';
 import ViewRecipe from './pages/ViewRecipe';

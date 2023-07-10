@@ -1,9 +1,7 @@
 import Navbar from '../../components/Navbar';
-import plusIcon from '/plus-icon.svg';
 import RecipeElement from './RecipeElement';
-import { createSignal, createEffect, onMount } from 'solid-js';
+import { createSignal, onMount } from 'solid-js';
 import axios from 'axios';
-import RecipePreview from '../../components/RecipePreview';
 import { A } from '@solidjs/router';
 
 export default function ForYou() {

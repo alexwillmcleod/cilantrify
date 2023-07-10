@@ -22,5 +22,10 @@ export default function ViewProfile() {
     }
   });
 
-  return <div>You are viewing the profile of the user with id: {id}</div>;
+  return (
+    <div>
+      You are viewing the profile of the user with id: {id}
+      {userInfo()}
+    </div>
+  );
 }

@@ -1,5 +1,4 @@
 import defaultAvatar from '/default-avatar.svg';
-import searchIcon from '/search-icon.svg';
 import { A, useNavigate } from '@solidjs/router';
 import { useAuth } from '../hooks/useAuth';
 

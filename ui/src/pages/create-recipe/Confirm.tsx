@@ -1,5 +1,5 @@
 import RecipePreview from '../../components/RecipePreview';
-import { Accessor, createEffect, createSignal } from 'solid-js';
+import { Accessor, createEffect } from 'solid-js';
 import { IngredientElementProps } from './IngredientElement';
 
 export default function Confirm(props: {
