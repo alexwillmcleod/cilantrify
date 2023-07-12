@@ -20,6 +20,7 @@ interface User {
   email: string;
   given_name: string;
   family_name: string;
+  id: number;
 }
 
 export const AuthProvider = (props: any) => {

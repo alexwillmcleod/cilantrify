@@ -4,7 +4,7 @@ use axum::{
   body::Full,
   extract::{Json, Query, State},
   response::{IntoResponse, Response},
-  routing::{get, post},
+  routing::{get, post, delete},
   Extension, Router,
 };
 use axum_macros::debug_handler;
@@ -22,7 +22,10 @@ pub fn recipe_routes() -> Router<Arc<AppState>> {
   Router::new()
     .route("/", post(create))
     .route("/", get(fetch))
+    .route("/", delete(delete_recipe))
     .route("/all", get(fetch_last))
+    .route("/search", get(search_paginated))
+    .route("/page", get(paginated))
 }
 
 #[allow(non_camel_case_types)]
@@ -73,6 +76,7 @@ struct FullFetchedRecipe {
   picture: String,
   author_given_name: String,
   author_family_name:String,
+  author_id: i32,
   author_profile: Option<String>,
   instructions: Vec<String>,
   ingredients: Vec<Ingredient>,
@@ -87,6 +91,7 @@ struct RecipeWithoutIngredients {
   picture: String,
   author_given_name: String,
   author_family_name: String,
+  author_id: i32,
   author_profile: Option<String>,
   instructions: Vec<String>,
 }
@@ -110,7 +115,8 @@ async fn fetch(
       recipes.picture AS "picture",
       users.given_name AS "author_given_name",
       users.family_name AS "author_family_name",
-      users.picture AS "author_profile"
+      users.picture AS "author_profile",
+      users.id AS "author_id"
     FROM 
       recipes
       JOIN users ON recipes.author_id = users.id
@@ -148,6 +154,7 @@ async fn fetch(
     author_given_name: recipe.author_given_name,
     author_family_name: recipe.author_family_name,
     author_profile: recipe.author_profile,
+    author_id: recipe.author_id,
     instructions: recipe.instructions,
     ingredients
   };
@@ -268,6 +275,57 @@ struct FetchedRecipe {
   author_first_name: Option<String>,
   author_last_name: Option<String>,
   author_profile: Option<String>,
+
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct DeletedRecipe {
+  id: i32
+}
+
+#[debug_handler]
+async fn delete_recipe(Query(recipe_query): Query<RecipeFetchQuery>, Extension(user): Extension<Option<UserClaims>>, State(state): State<Arc<AppState>>) -> Response {
+  let Some(user) = user else {
+    return (StatusCode::UNAUTHORIZED, String::from("you must be signed in to delete a recipe")).into_response();
+  };
+
+
+  // let Ok(recipe) = sqlx::query!(
+  //   r#"
+  //     SELECT  
+  //       id
+  //     FROM 
+  //       recipes 
+  //     WHERE 
+  //       id = $1
+  //   "#,
+  //   recipe_query.recipe_id
+  // ).fetch_one(&state.db).await else {
+  //   return (StatusCode::NOT_FOUND, format!("could not find recipe with id {} created by user with id {}", recipe_query.recipe_id, user.id)).into_response();
+  // };
+
+  // tracing::debug!("{:#?}", recipe);
+
+  match sqlx::query_as!(
+    DeletedRecipe,
+    r#"
+      DELETE 
+      FROM 
+        recipes 
+      WHERE 
+          author_id = $1 
+        AND 
+          id = $2
+      RETURNING id 
+    "#,
+    user.id, recipe_query.recipe_id
+  ).fetch_one(&state.db).await {
+    Ok(recipe) => (StatusCode::OK, format!("successfully deleted recipe with id {}", recipe.id)).into_response(),
+    Err(err) => {
+      tracing::debug!("{:#?}", err); 
+      (StatusCode::NOT_FOUND, format!("could not delete recipe with id {} created by user with id {}", recipe_query.recipe_id, user.id)).into_response()
+    }
+  }
 }
 
 #[debug_handler]
@@ -287,7 +345,8 @@ async fn fetch_last(State(state): State<Arc<AppState>>) -> impl IntoResponse {
       recipes.picture AS "picture",
       users.given_name AS "author_given_name",
       users.family_name AS "author_family_name",
-      users.picture AS "author_profile"
+      users.picture AS "author_profile",
+      users.id AS "author_id"
     FROM 
       recipes
       JOIN users ON recipes.author_id = users.id
@@ -325,6 +384,7 @@ async fn fetch_last(State(state): State<Arc<AppState>>) -> impl IntoResponse {
         author_given_name: recipe.author_given_name,
         author_family_name: recipe.author_family_name,
         author_profile: recipe.author_profile,
+        author_id: recipe.author_id,
         instructions: recipe.instructions,
         ingredients
       };
@@ -334,3 +394,247 @@ async fn fetch_last(State(state): State<Arc<AppState>>) -> impl IntoResponse {
 
   (StatusCode::OK, axum::Json(Some(res))).into_response()
 }
+
+#[derive(Debug, Deserialize)]
+struct SearchPaginationParams {
+  page: i64,
+  search: String,
+  limit: i64 
+}
+
+#[debug_handler]
+async fn search_paginated(State(state): State<Arc<AppState>>, Query(search_pagination_params): Query<SearchPaginationParams>) -> Response {
+
+  let offset = (search_pagination_params.page - 1) * search_pagination_params.limit;
+  let limit = search_pagination_params.limit;
+  let search = search_pagination_params.search;
+  let search = format!("%{}%", search);
+
+  let mut res: Vec<FullFetchedRecipe> = Vec::new();
+
+  // Let's get the total count of pages
+  let Ok(record) = sqlx::query_as!(
+    CountResult,
+    r#"
+      SELECT COUNT(*)
+      FROM 
+        recipes
+      WHERE 
+        title LIKE $1
+      OR
+        description LIKE $1
+    "#,
+    search
+  ).fetch_one(&state.db).await else {
+    return (StatusCode::INTERNAL_SERVER_ERROR, String::from("could not count pages")).into_response();
+  };
+
+  let Some(count) = record.count else {
+    return (StatusCode::INTERNAL_SERVER_ERROR, String::from("could not count pages")).into_response();
+  };
+
+  let page_count = f64::ceil(count as f64 / limit as f64) as i32;
+
+
+
+  let Ok(recipes) = sqlx::query_as!(
+    RecipeWithoutIngredients, 
+    r#"
+    SELECT 
+      recipes.id AS "id",
+      recipes.title AS "title",
+      recipes.description AS "description",
+      recipes.instructions AS "instructions", 
+      recipes.created_at AS "created_at",
+      recipes.picture AS "picture",
+      users.given_name AS "author_given_name",
+      users.family_name AS "author_family_name",
+      users.picture AS "author_profile",
+      users.id AS "author_id"
+    FROM 
+      recipes
+      JOIN users ON recipes.author_id = users.id
+    WHERE 
+        title LIKE $1
+      OR
+        description LIKE $1
+    ORDER BY 
+      created_at
+    DESC
+    LIMIT $2
+    OFFSET $3
+  "#,
+    search,
+    limit, 
+    offset
+  )
+    .fetch_all(&state.db)
+    .await else {
+      return (StatusCode::NOT_FOUND, String::from("could not find recipe")).into_response();
+    };
+
+
+    for recipe in recipes {
+      // Let's look for the ingredients now
+      let Ok(ingredients) = sqlx::query_as!(
+        Ingredient,
+        r#"
+          SELECT 
+            name,
+            amount,
+            unit AS "measurement: Unit"
+          FROM 
+            ingredients
+          WHERE recipe_id = $1
+        "#, 
+        recipe.id
+      ).fetch_all(&state.db).await else {
+        return (StatusCode::NOT_FOUND, String::from("could not find ingredients")).into_response();
+      };
+
+      let full_fetched_recipe = FullFetchedRecipe {
+        title: recipe.title,
+        id: recipe.id,
+        description: recipe.description,
+        created_at: recipe.created_at,
+        picture: recipe.picture,
+        author_given_name: recipe.author_given_name,
+        author_family_name: recipe.author_family_name,
+        author_profile: recipe.author_profile,
+        author_id: recipe.author_id,
+        instructions: recipe.instructions,
+        ingredients
+      };
+
+      res.push(full_fetched_recipe);
+    }
+
+    let final_response = PaginatedResponse {
+      page_count,
+      recipes: res
+    };
+
+    (StatusCode::OK, Json(final_response)).into_response()
+
+}
+
+
+
+#[derive(Debug, Deserialize)]
+struct PaginationParams {
+  page: i64,
+  limit: i64 
+}
+
+#[derive(Debug, Deserialize)]
+struct CountResult {
+  count: Option<i64>
+}
+
+#[derive(Serialize)]
+struct PaginatedResponse {
+  page_count: i32,
+  recipes: Vec<FullFetchedRecipe>
+}
+
+#[debug_handler]
+async fn paginated(State(state): State<Arc<AppState>>, Query(pagination_params): Query<PaginationParams>) -> Response {
+
+  let offset = (pagination_params.page - 1) * pagination_params.limit;
+  let limit = pagination_params.limit;
+
+  // Let's get the total count of pages
+  let Ok(record) = sqlx::query_as!(
+    CountResult,
+    r#"
+      SELECT COUNT(*)
+      FROM 
+        recipes
+    "#
+  ).fetch_one(&state.db).await else {
+    return (StatusCode::INTERNAL_SERVER_ERROR, String::from("could not count pages")).into_response();
+  };
+
+  let Some(count) = record.count else {
+    return (StatusCode::INTERNAL_SERVER_ERROR, String::from("could not count pages")).into_response();
+  };
+
+  let page_count = f64::ceil(count as f64 / limit as f64) as i32;
+
+  let mut res: Vec<FullFetchedRecipe> = Vec::new();
+
+  let Ok(recipes) = sqlx::query_as!(
+    RecipeWithoutIngredients, 
+    r#"
+    SELECT 
+      recipes.id AS "id",
+      recipes.title AS "title",
+      recipes.description AS "description",
+      recipes.instructions AS "instructions", 
+      recipes.created_at AS "created_at",
+      recipes.picture AS "picture",
+      users.given_name AS "author_given_name",
+      users.family_name AS "author_family_name",
+      users.picture AS "author_profile",
+      users.id AS "author_id"
+    FROM 
+      recipes
+      JOIN users ON recipes.author_id = users.id
+    ORDER BY 
+      created_at
+    DESC
+    LIMIT $1
+    OFFSET $2
+  "#,
+    limit, 
+    offset
+  )
+    .fetch_all(&state.db)
+    .await else {
+      return (StatusCode::NOT_FOUND, String::from("could not find recipe")).into_response();
+    };
+
+
+    for recipe in recipes {
+      // Let's look for the ingredients now
+      let Ok(ingredients) = sqlx::query_as!(
+        Ingredient,
+        r#"
+          SELECT 
+            name,
+            amount,
+            unit AS "measurement: Unit"
+          FROM 
+            ingredients
+          WHERE recipe_id = $1
+        "#, 
+        recipe.id
+      ).fetch_all(&state.db).await else {
+        return (StatusCode::NOT_FOUND, String::from("could not find ingredients")).into_response();
+      };
+
+      let full_fetched_recipe = FullFetchedRecipe {
+        title: recipe.title,
+        id: recipe.id,
+        description: recipe.description,
+        created_at: recipe.created_at,
+        picture: recipe.picture,
+        author_given_name: recipe.author_given_name,
+        author_family_name: recipe.author_family_name,
+        author_profile: recipe.author_profile,
+        author_id: recipe.author_id,
+        instructions: recipe.instructions,
+        ingredients
+      };
+
+      res.push(full_fetched_recipe);
+    }
+
+    let final_response = PaginatedResponse {
+      page_count,
+      recipes: res
+    };
+
+    (StatusCode::OK, Json(final_response)).into_response()
+}
+

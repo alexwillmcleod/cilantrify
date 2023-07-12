@@ -16,6 +16,7 @@ export default {
         dark: {
           ...require('daisyui/src/theming/themes')['[data-theme=dark]'],
           primary: '#77966D',
+          secondary: '#7C8FD1',
         },
       },
     ],

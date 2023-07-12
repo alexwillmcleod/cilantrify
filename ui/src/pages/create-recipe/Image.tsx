@@ -47,7 +47,7 @@ export default function ImageStep(props: ImageProps) {
       const ctx = canvas.getContext('2d');
       ctx!.drawImage(img, 0, 0, width, height);
 
-      const compressedBase64 = canvas.toDataURL('image/jpeg', 0.8); // Adjust compression quality as needed
+      const compressedBase64 = canvas.toDataURL('image/jpeg', 1); // Adjust compression quality as needed
 
       props.setImage(compressedBase64);
     };

@@ -1,10 +1,33 @@
 import Navbar from '../../components/Navbar';
 import RecipeElement from './RecipeElement';
-import { createSignal, onMount } from 'solid-js';
+import { createEffect, createSignal, onMount } from 'solid-js';
 import axios from 'axios';
 import { A } from '@solidjs/router';
+import Pagination from './Pagination';
+import SearchBar from './SearchBar';
 
 export default function ForYou() {
+  const [page, setPage] = createSignal<number>(1);
+  const [pageCount, setPageCount] = createSignal<number | undefined>(undefined);
+  const [searchTerm, setSearchTerm] = createSignal<string>('');
+
+  const handleNextPage = () => {
+    if (!pageCount()) return;
+    console.log(
+      `Going to next page. Page = ${page()}. PageCount = ${pageCount()!}`
+    );
+    if (page() < pageCount()!) {
+      setPage(page() + 1);
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handlePreviousPage = () => {
+    if (page() > 1) {
+      setPage(page() - 1);
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
   const [recipes, setRecipes] = createSignal<
     {
       title: string;
@@ -17,22 +40,58 @@ export default function ForYou() {
     }[]
   >([]);
 
-  onMount(async () => {
+  const getPage = async () => {
     try {
-      const res = await axios.get('/recipe/all');
-      setRecipes(res.data);
+      const res = await axios.get('/recipe/page', {
+        params: {
+          page: page(),
+          limit: 3,
+        },
+      });
+
+      setRecipes(res.data.recipes);
+      setPageCount(res.data.page_count);
       console.log(res.data);
     } catch (err) {
       console.error(err);
       return;
     }
+  };
+
+  const getSearch = async () => {
+    try {
+      const res = await axios.get('/recipe/search', {
+        params: {
+          search: searchTerm(),
+          page: page(),
+          limit: 3,
+        },
+      });
+
+      setRecipes(res.data.recipes);
+      setPageCount(res.data.page_count);
+      console.log(res.data);
+    } catch (err) {
+      console.error(err);
+      return;
+    }
+  };
+
+  createEffect(async () => {
+    if (searchTerm() == '') {
+      getPage();
+    } else {
+      getSearch();
+    }
   });
 
   return (
-    <div class="flex flex-col min-h-screen">
+    <div class="flex flex-col min-h-screen ">
       <Navbar />
-      <div class="flex flex-col items-center justify-center gap-10">
+      <div class="flex flex-col items-center justify-center gap-10 mb-10">
         <h2 class="font-bold text-display text-3xl">For You</h2>
+        <SearchBar setSearchTerm={setSearchTerm} />
+        {pageCount() == 0 && <p>No recipes match that search</p>}
         <ul class="flex flex-col gap-8">
           {recipes() &&
             recipes()!.map((element) => (
@@ -48,7 +107,16 @@ export default function ForYou() {
               </li>
             ))}
         </ul>
+        {pageCount() && (
+          <Pagination
+            currentPage={page}
+            totalPages={pageCount()!}
+            nextPage={handleNextPage}
+            lastPage={handlePreviousPage}
+          />
+        )}
       </div>
+
       <A
         href="/create"
         class="fixed bottom-5 right-5"

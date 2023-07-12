@@ -35,7 +35,7 @@ async fn main() -> Result<()> {
   let ui_host = std::env::var("UI_HOST").expect("UI_HOST environment variable must be set.");
 
   let cors = CorsLayer::new()
-    .allow_methods([Method::GET, Method::POST])
+    .allow_methods([Method::GET, Method::POST, Method::DELETE])
     .allow_credentials(true)
     .allow_headers([AUTHORIZATION, CONTENT_TYPE])
     .allow_origin(ui_host.parse::<HeaderValue>().unwrap());

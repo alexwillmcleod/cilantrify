@@ -480,6 +480,18 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
+"@solid-primitives/clipboard@^1.5.6":
+  version "1.5.6"
+  resolved "https://registry.yarnpkg.com/@solid-primitives/clipboard/-/clipboard-1.5.6.tgz#320b36c6597b43d97fe007fa8d0156f8ae6d6927"
+  integrity sha512-fG60S5/TSxfZy7gyNysPfft+IY1HJYP6dDlZWKfx3drwEFVfFXsoXqpiE13DUrxKhZehpuh5kLqhUvF2ebXyGw==
+  dependencies:
+    "@solid-primitives/utils" "^6.2.0"
+
+"@solid-primitives/utils@^6.2.0":
+  version "6.2.0"
+  resolved "https://registry.yarnpkg.com/@solid-primitives/utils/-/utils-6.2.0.tgz#7d092eaed9eef8fb77f9fe3d7a717e5ed330d1cf"
+  integrity sha512-T62WlLwKkbmicsw/xpwMQyv9MmZRSaVyutXfS5icc9v0cb8qGMUxRxr5LVvZHYQCZ9DEFboZB0r711xsbVBbeA==
+
 "@solidjs/router@^0.8.2":
   version "0.8.2"
   resolved "https://registry.yarnpkg.com/@solidjs/router/-/router-0.8.2.tgz#3dd82fd052cb8654a2948989ed3e17cf6b25b04d"

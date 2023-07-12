@@ -26,6 +26,7 @@ pub struct User {
   pub email: String,
   pub given_name: String,
   pub family_name: String,
+  pub id: i32,
 }
 
 pub fn auth_routes() -> Router<Arc<AppState>> {
@@ -45,7 +46,7 @@ async fn user_info(
 
   let Ok(user) = sqlx::query_as!(
     User, 
-    "SELECT picture, email, family_name, given_name FROM users WHERE id = $1",
+    "SELECT picture, email, family_name, given_name, id FROM users WHERE id = $1",
     &user.id
   )
     .fetch_one(&state.db)

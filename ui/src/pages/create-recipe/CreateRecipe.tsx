@@ -86,7 +86,7 @@ export default function CreateRecipe() {
     } catch (err) {
       console.error(err);
       addSnackBar(
-        <div class="alert alert-info transition-all">
+        <div class="alert alert-error transition-all">
           <span>Failed to create recipe</span>
         </div>,
         2000

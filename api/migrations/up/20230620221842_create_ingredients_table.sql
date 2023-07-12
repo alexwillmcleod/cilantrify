@@ -2,7 +2,7 @@
 CREATE TABLE ingredients (
   id SERIAL PRIMARY KEY,
   recipe_id INT NOT NULL,
-  FOREIGN KEY (recipe_id) REFERENCES recipes(id),
+  FOREIGN KEY (recipe_id) REFERENCES recipes(id) ON DELETE CASCADE,
   name VARCHAR(255) NOT NULL,
   amount DOUBLE PRECISION NOT NULL,
   unit measurement_unit NOT NULL,
