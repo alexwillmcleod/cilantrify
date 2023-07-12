@@ -1,4 +1,4 @@
-import { Accessor, createSignal } from 'solid-js';
+import { createSignal } from 'solid-js';
 
 interface SearchBarProps {
   setSearchTerm: Function;

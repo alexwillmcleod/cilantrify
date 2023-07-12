@@ -1,6 +1,6 @@
 import Navbar from '../../components/Navbar';
 import RecipeElement from './RecipeElement';
-import { createEffect, createSignal, onMount } from 'solid-js';
+import { createEffect, createSignal } from 'solid-js';
 import axios from 'axios';
 import { A } from '@solidjs/router';
 import Pagination from './Pagination';

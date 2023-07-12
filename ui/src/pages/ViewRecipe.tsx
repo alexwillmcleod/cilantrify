@@ -1,6 +1,5 @@
 import { A, useParams } from '@solidjs/router';
-import shareIcon from '/share-icon.svg';
-import { createSignal, onMount, createEffect, JSXElement } from 'solid-js';
+import { createSignal, onMount, JSXElement } from 'solid-js';
 import axios from 'axios';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../hooks/useAuth';
