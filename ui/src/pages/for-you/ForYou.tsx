@@ -70,6 +70,7 @@ export default function ForYou() {
 
       setRecipes(res.data.recipes);
       setPageCount(res.data.page_count);
+      setPage(1);
       console.log(res.data);
     } catch (err) {
       console.error(err);
