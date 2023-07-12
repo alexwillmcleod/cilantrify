@@ -26,7 +26,7 @@ export default function Pagination({
       <button
         onClick={() => nextPage()}
         class="join-item btn"
-        disabled={currentPage() >= totalPages - 1}
+        disabled={currentPage() >= totalPages}
       >
         »
       </button>
