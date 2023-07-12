@@ -10,7 +10,7 @@ export default function Navbar() {
       {/* <div class="navbar-start"></div> */}
       <div class="navbar-start">
         <A
-          href="/"
+          href={user() == undefined ? '/' : '/for-you'}
           class="font-display font-bold text-3xl text-primary"
         >
           Cilantrify

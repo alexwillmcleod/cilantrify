@@ -420,9 +420,9 @@ async fn search_paginated(State(state): State<Arc<AppState>>, Query(search_pagin
       FROM 
         recipes
       WHERE 
-        title LIKE $1
+        title ILIKE $1
       OR
-        description LIKE $1
+        description ILIKE $1
     "#,
     search
   ).fetch_one(&state.db).await else {
@@ -455,9 +455,9 @@ async fn search_paginated(State(state): State<Arc<AppState>>, Query(search_pagin
       recipes
       JOIN users ON recipes.author_id = users.id
     WHERE 
-        title LIKE $1
+        title ILIKE $1
       OR
-        description LIKE $1
+        description ILIKE $1
     ORDER BY 
       created_at
     DESC

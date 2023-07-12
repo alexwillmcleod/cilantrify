@@ -171,7 +171,9 @@ export default function ViewRecipe() {
                     {element.name}
                     <span class="italic">
                       {element.amount}
-                      {element.measurement}
+                      {element.measurement == 'Units'
+                        ? ''
+                        : element.measurement}
                     </span>
                   </div>
                 </li>
