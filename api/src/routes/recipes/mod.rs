@@ -23,7 +23,6 @@ pub fn recipe_routes() -> Router<Arc<AppState>> {
     .route("/", post(create))
     .route("/", get(fetch))
     .route("/", delete(delete_recipe))
-    .route("/all", get(fetch_last))
     .route("/search", get(search_paginated))
     .route("/page", get(paginated))
 }
@@ -327,74 +326,6 @@ async fn delete_recipe(Query(recipe_query): Query<RecipeFetchQuery>, Extension(u
     }
   }
 }
-
-#[debug_handler]
-async fn fetch_last(State(state): State<Arc<AppState>>) -> impl IntoResponse {
-
-  let mut res: Vec<FullFetchedRecipe> = Vec::new();
-
-  let Ok(recipes) = sqlx::query_as!(
-    RecipeWithoutIngredients, 
-    r#"
-    SELECT 
-      recipes.id AS "id",
-      recipes.title AS "title",
-      recipes.description AS "description",
-      recipes.instructions AS "instructions", 
-      recipes.created_at AS "created_at",
-      recipes.picture AS "picture",
-      users.given_name AS "author_given_name",
-      users.family_name AS "author_family_name",
-      users.picture AS "author_profile",
-      users.id AS "author_id"
-    FROM 
-      recipes
-      JOIN users ON recipes.author_id = users.id
-  "#)
-    .fetch_all(&state.db)
-    .await else {
-      return (StatusCode::NOT_FOUND, String::from("could not find recipe")).into_response();
-    };
-
-
-    for recipe in recipes {
-      // Let's look for the ingredients now
-      let Ok(ingredients) = sqlx::query_as!(
-        Ingredient,
-        r#"
-          SELECT 
-            name,
-            amount,
-            unit AS "measurement: Unit"
-          FROM 
-            ingredients
-          WHERE recipe_id = $1
-        "#, 
-        recipe.id
-      ).fetch_all(&state.db).await else {
-        return (StatusCode::NOT_FOUND, String::from("could not find ingredients")).into_response();
-      };
-
-      let full_fetched_recipe = FullFetchedRecipe {
-        title: recipe.title,
-        id: recipe.id,
-        description: recipe.description,
-        created_at: recipe.created_at,
-        picture: recipe.picture,
-        author_given_name: recipe.author_given_name,
-        author_family_name: recipe.author_family_name,
-        author_profile: recipe.author_profile,
-        author_id: recipe.author_id,
-        instructions: recipe.instructions,
-        ingredients
-      };
-
-      res.push(full_fetched_recipe);
-    }
-
-  (StatusCode::OK, axum::Json(Some(res))).into_response()
-}
-
 #[derive(Debug, Deserialize)]
 struct SearchPaginationParams {
   page: i64,
