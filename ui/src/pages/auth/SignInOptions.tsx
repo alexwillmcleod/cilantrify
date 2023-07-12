@@ -37,6 +37,12 @@ export default function SignInOptions() {
                 <img src={gmailIcon} />
               </button>
             </span>
+            <A
+              class="text-xl text-blue-300 relative top-5"
+              href="/for-you"
+            >
+              Or Browse as a Guest
+            </A>
           </div>
         </div>
       </div>
