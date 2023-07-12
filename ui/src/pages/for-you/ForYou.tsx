@@ -16,7 +16,7 @@ export default function ForYou() {
     console.log(
       `Going to next page. Page = ${page()}. PageCount = ${pageCount()!}`
     );
-    if (page() < pageCount()! - 1) {
+    if (page() < pageCount()!) {
       setPage(page() + 1);
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
