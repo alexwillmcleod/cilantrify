@@ -8,24 +8,19 @@ import SearchBar from './SearchBar';
 
 export default function ForYou() {
   const [page, setPage] = createSignal<number>(1);
-  const [pageCount, setPageCount] = createSignal<number | undefined>(undefined);
+  const [pageCount, setPageCount] = createSignal<number>(1);
   const [searchTerm, setSearchTerm] = createSignal<string>('');
 
   const handleNextPage = () => {
     if (!pageCount()) return;
-    console.log(
-      `Going to next page. Page = ${page()}. PageCount = ${pageCount()!}`
-    );
-    if (page() < pageCount()!) {
-      setPage(page() + 1);
-    }
+    if (page() >= pageCount()) return;
+    setPage(page() + 1);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handlePreviousPage = () => {
-    if (page() > 1) {
-      setPage(page() - 1);
-    }
+    if (page() <= 1) return;
+    setPage(page() - 1);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
   const [recipes, setRecipes] = createSignal<
@@ -108,14 +103,12 @@ export default function ForYou() {
               </li>
             ))}
         </ul>
-        {pageCount() && (
-          <Pagination
-            currentPage={page}
-            totalPages={pageCount()!}
-            nextPage={handleNextPage}
-            lastPage={handlePreviousPage}
-          />
-        )}
+        <Pagination
+          currentPage={page}
+          totalPages={pageCount}
+          nextPage={handleNextPage}
+          lastPage={handlePreviousPage}
+        />
       </div>
 
       <A
