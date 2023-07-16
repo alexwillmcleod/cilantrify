@@ -57,7 +57,7 @@ export default function EnterEmail({
   };
 
   return (
-    <div class="flex flex-col px-24 lg:flex-row justify-around items-center">
+    <div class="flex flex-col px-4 md:px-24 lg:flex-row justify-around items-center">
       <img
         src={Join}
         class="max-w-sm hidden lg:flex"

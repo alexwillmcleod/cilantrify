@@ -32,7 +32,7 @@ export default function EnterName({
   };
 
   return (
-    <div class="flex flex-col px-24 lg:flex-row justify-around items-center">
+    <div class="flex flex-col px-4 md:px-24 lg:flex-row justify-around items-center">
       <img
         src={Buddies}
         class="max-w-sm hidden lg:flex"

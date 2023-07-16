@@ -45,8 +45,10 @@ export default function EmailSuccess({
     onNext();
   };
   return (
-    <div class="flex flex-col justify-center items-center py-12 gap-8">
-      <h2 class="font-bold text-xl">Email Successfully sent to {email()}</h2>
+    <div class="flex flex-col justify-center items-center px-4 md:px-24 py-12 gap-8">
+      <h2 class="font-bold text-xl text-center">
+        Email Successfully sent to {email()}
+      </h2>
       <span class="flex flex-col gap-4">
         <input
           type="text"
