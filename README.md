@@ -1,4 +1,5 @@
 # Cilantrify
+[![Netlify Status](https://api.netlify.com/api/v1/badges/cad669f6-9fba-457c-8903-c7b2e67c1929/deploy-status)](https://app.netlify.com/sites/cilantrify/deploys)
 
 There's not really a way to share recipes online without sharing the link to someone's wordpress site covered in ads. It's difficult for everyday people to upload their recipes, save recipes they care about and follow people they are interested in. Cilantrify is a recipe sharing web app built with Solid, Typescript, Tailwind, DaisyUI, Rust, Axum, and SQL.
 
