@@ -20,7 +20,7 @@ interface Recipe {
   instructions: string[];
   ingredients: Ingredient[];
   id: number;
-  createdAt: Date;
+  created_at: Date;
   author_family_name: string;
   author_given_name: string;
   author_profile: string;
@@ -109,6 +109,7 @@ export default function ViewRecipe() {
                 {recipe()!.author_given_name} {recipe()!.author_family_name}
               </h2>
             </span>
+            {/* <p>Published on {recipe()!.created_at.getDate()}</p> */}
             <span class="flex flex-row justify-center gap-1">
               <button
                 class="btn btn-ghost"
@@ -163,6 +164,7 @@ export default function ViewRecipe() {
               )}
             </span>
           </div>
+          <p class="w-fit px-12 md:px-32 text-xl ">{recipe()!.description}</p>
           <div class="flex flex-col gap-3 w-fit px-12 md:px-32">
             <p class="font-semibold text-2xl">Ingredients</p>
             <ul class="flex flex-col gap-2">
