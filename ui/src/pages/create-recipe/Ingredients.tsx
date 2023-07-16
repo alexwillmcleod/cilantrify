@@ -4,11 +4,13 @@ import { createSignal } from 'solid-js';
 interface IngredientsProps {
   ingredients: Function;
   setIngredients: Function;
+  addSnackBar: Function;
 }
 
 export default function Ingredients({
   ingredients,
   setIngredients,
+  addSnackBar,
 }: IngredientsProps) {
   const [newIngredientName, setNewIngredientName] = createSignal('');
   const [newIngredientAmount, setNewIngredientAmount] = createSignal('');
@@ -21,6 +23,15 @@ export default function Ingredients({
 
   const handleAddElement = () => {
     console.log('Adding element');
+    if (newIngredientAmount() == '') {
+      addSnackBar(
+        <div class="alert alert-error transition-all">
+          <span>Ingredient amount must be selected</span>
+        </div>,
+        2000
+      );
+      return;
+    }
     setIngredients([
       ...ingredients(),
       {

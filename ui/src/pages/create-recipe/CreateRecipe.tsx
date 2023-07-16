@@ -177,6 +177,7 @@ export default function CreateRecipe() {
           <Ingredients
             ingredients={ingredients}
             setIngredients={setIngredients}
+            addSnackBar={addSnackBar}
           />,
           <Instructions
             instructions={instructions}
@@ -196,8 +197,8 @@ export default function CreateRecipe() {
           />,
         ][step()]
       }
-      <span class="btm-nav flex w-screen p-10">
-        <div class="flex px-6 py-20 bg-base-100 rounded-xl w-full flex-row gap-4 justify-between items-center">
+      <span class="btm-nav btm-nav-xl h-fit m-0 p-0 flex w-screen p-10">
+        <div class="flex px-6 py-10 bg-base-100 rounded-xl w-full flex-row gap-4 justify-between items-center">
           <StepProgressBar
             step={step}
             setStep={goToStep}

@@ -93,7 +93,7 @@ export default function ViewRecipe() {
     <>
       <Navbar />
       {recipe() ? (
-        <div class="flex flex-col items-center  gap-16 mb-10">
+        <div class="flex flex-col gap-16 mb-16">
           <div class="flex flex-col gap-6">
             <img
               class="object-cover aspect-video w-screen h-96"
@@ -163,30 +163,32 @@ export default function ViewRecipe() {
               )}
             </span>
           </div>
-          <div class="flex flex-col gap-3 justify-center w-fit">
+          <div class="flex flex-col gap-3 w-fit px-12 md:px-32">
             <p class="font-semibold text-2xl">Ingredients</p>
-            <ul class="flex flex-col gap-2 justify-center">
+            <ul class="flex flex-col gap-2">
               {recipe()!.ingredients.map((element: any) => (
                 <li class="list-disc">
-                  <div class="flex flex-row gap-4 text-center">
+                  <div class="flex flex-row gap-4 text-xl">
                     {element.name}
-                    <span class="italic">
+                    <div class="italic">
                       {element.amount}
                       {element.measurement == 'Units'
                         ? ''
                         : element.measurement}
-                    </span>
+                    </div>
                   </div>
                 </li>
               ))}
             </ul>
           </div>
-          <div class="flex flex-col gap-3 justify-center w-fit">
+          <div class="flex flex-col gap-4 justify-center w-fit px-12 md:px-32">
             <p class="font-semibold text-2xl">Instructions</p>
-            <ul class="list-decimal flex flex-col gap-2">
+            <ul class="list-decimal flex flex-col gap-8">
               {recipe()!.instructions.map((element: any) => (
                 <li class="list-decimal">
-                  <div class="flex flex-row gap-4">{element}</div>
+                  <div class="flex flex-row gap-4 text-xl leading-8">
+                    {element}
+                  </div>
                 </li>
               ))}
             </ul>

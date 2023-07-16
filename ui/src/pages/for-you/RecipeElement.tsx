@@ -15,7 +15,7 @@ export default function RecipeElement(props: RecipeElementProps) {
     console.log(props.image);
   });
   return (
-    <div class="card w-screen-xl bg-base-100 shadow-xl">
+    <div class="card w-screen-xl max-w-screen-sm bg-base-100 shadow-xl">
       <img
         src={props.image}
         class="object-cover aspect-video w-128 h-64"
@@ -33,7 +33,7 @@ export default function RecipeElement(props: RecipeElementProps) {
           />
           <h3 class="font-medium text-lg">{props.author}</h3>
         </span>
-        <p>{props.description}</p>
+        <p class="truncate">{props.description}</p>
         <div class="card-actions justify-end">
           <A
             href={`/recipe/${props.id}`}
