@@ -12,6 +12,7 @@ import ForYou from './pages/for-you/ForYou';
 import ViewRecipe from './pages/ViewRecipe';
 import ViewProfile from './pages/ViewProfile';
 import RecipeNotFound from './pages/RecipeNotFound';
+import EmailSignIn from './pages/auth/EmailSignIn';
 
 const root = document.getElementById('root');
 axios.defaults.baseURL = import.meta.env.VITE_API_URL;
@@ -52,6 +53,10 @@ render(
             <Route
               path="/google/callback"
               component={GoogleCallback}
+            />
+            <Route
+              path="/email"
+              component={EmailSignIn}
             />
             <Route
               path="/options"

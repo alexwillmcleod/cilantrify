@@ -35,18 +35,20 @@ async fn main() -> Result<()> {
   let ui_host = std::env::var("UI_HOST").expect("UI_HOST environment variable must be set.");
 
   let cors = CorsLayer::new()
-    .allow_methods([Method::GET, Method::POST, Method::DELETE])
+    .allow_methods([Method::GET, Method::POST, Method::DELETE, Method::PUT])
     .allow_credentials(true)
     .allow_headers([AUTHORIZATION, CONTENT_TYPE])
     .allow_origin(ui_host.parse::<HeaderValue>().unwrap());
 
   let auth_routes = cilantrify_api::routes::auth::auth_routes();
   let recipe_routes = cilantrify_api::routes::recipes::recipe_routes();
+  let profile_routes = cilantrify_api::routes::profiles::profile_routes();
 
   let app = Router::new()
     .route("/", get(root))
     .nest("/auth", auth_routes)
     .nest("/recipe", recipe_routes)
+    .nest("/profile", profile_routes)
     .layer(
       ServiceBuilder::new()
         .layer(Extension::<Option<UserClaims>>(None))

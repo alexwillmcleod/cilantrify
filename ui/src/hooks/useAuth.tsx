@@ -5,13 +5,21 @@ import {
   Accessor,
   onMount,
 } from 'solid-js';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import Cookies from 'js-cookie';
 
 const AuthContext = createContext<{
   user: Accessor<User | undefined>;
-  handleGoogleLogin: (token: string) => void;
+  handleGoogleLogin: (token: string) => Promise<void>;
+  handleSSOLogin: (email: string, code: number) => Promise<void>;
+  handleSSOCreate: (
+    email: string,
+    code: number,
+    givenName: string,
+    familyName: string
+  ) => Promise<void>;
   getLoginData: () => void;
+  setProfilePicture: (image: string) => void;
   handleLogout: () => void;
 }>();
 
@@ -30,6 +38,10 @@ export const AuthProvider = (props: any) => {
     getLoginData();
   });
 
+  const setProfilePicture = (image: string) => {
+    setUser({ ...user()!, picture: image });
+  };
+
   const handleGoogleLogin = async (code: string) => {
     const res = await axios.post('/auth/google/callback', {
       code,
@@ -41,6 +53,47 @@ export const AuthProvider = (props: any) => {
     });
     axios.defaults.headers.common.Authorization = `Bearer ${token}`;
     await getUserData();
+  };
+
+  const handleSSOLogin = async (email: string, code: number) => {
+    // We are going to handle logging in with email and code
+    const res = await axios.post('/auth/sso/sign-in', {
+      email,
+      code,
+    });
+    const token = await res.data;
+    Cookies.set('cilantrify-api-token', token, {
+      secure: true,
+      expires: 30,
+    });
+    axios.defaults.headers.common.Authorization = `Bearer ${token}`;
+    await getUserData();
+  };
+
+  const handleSSOCreate = async (
+    email: string,
+    code: number,
+    givenName: string,
+    familyName: string
+  ) => {
+    // We are going to handle logging in with email and code
+    try {
+      const res = await axios.post('/auth/sso/create', {
+        email,
+        code,
+        given_name: givenName,
+        family_name: familyName,
+      });
+      const token = await res.data;
+      Cookies.set('cilantrify-api-token', token, {
+        secure: true,
+        expires: 30,
+      });
+      axios.defaults.headers.common.Authorization = `Bearer ${token}`;
+      await getUserData();
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const getLoginData = async () => {
@@ -64,7 +117,15 @@ export const AuthProvider = (props: any) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, handleGoogleLogin, getLoginData, handleLogout }}
+      value={{
+        user,
+        handleGoogleLogin,
+        handleSSOLogin,
+        handleSSOCreate,
+        getLoginData,
+        handleLogout,
+        setProfilePicture,
+      }}
     >
       {props.children}
     </AuthContext.Provider>

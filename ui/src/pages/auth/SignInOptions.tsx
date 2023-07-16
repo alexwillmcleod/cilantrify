@@ -33,9 +33,12 @@ export default function SignInOptions() {
               >
                 <img src={googleIcon} />
               </A>
-              <button class="btn btn-ghost btn-primary w-24 h-24">
+              <A
+                href="/auth/email"
+                class="btn btn-ghost btn-primary w-24 h-24"
+              >
                 <img src={gmailIcon} />
-              </button>
+              </A>
             </span>
             <A
               class="text-xl text-blue-300 relative top-5"

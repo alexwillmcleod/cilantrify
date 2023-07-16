@@ -198,18 +198,18 @@ async fn create(
     .await;
 
   let Ok(res) = request_body else {
-  return (StatusCode::INTERNAL_SERVER_ERROR, String::from("could not upload image")).into_response();
-};
+    return (StatusCode::INTERNAL_SERVER_ERROR, String::from("could not upload image")).into_response();
+  };
 
   let Ok(data): Result<serde_json::Value, reqwest::Error> = res.json().await else {
-  return (StatusCode::INTERNAL_SERVER_ERROR, String::from("could not upload image")).into_response();
-};
+    return (StatusCode::INTERNAL_SERVER_ERROR, String::from("could not upload image")).into_response();
+  };
 
   let Some(url_value): Option<&str> = data["data"]["image"]["url"].as_str() else {
-  return (StatusCode::INTERNAL_SERVER_ERROR, String::from("could not upload image")).into_response();
-};
+    return (StatusCode::INTERNAL_SERVER_ERROR, String::from("could not upload image")).into_response();
+  };
 
-let url = String::from(url_value);
+  let url = String::from(url_value);
 
 // Let's create the recipe
 // Let's create the ingredients
@@ -259,11 +259,11 @@ let Ok(res) = sqlx::query_as!(
 
     tmx.commit().await.unwrap();
 
-  (
-    StatusCode::OK,
-    format!("successfully created recipe {}", &body.title),
-  )
-    .into_response()
+    (
+      StatusCode::OK,
+      format!("successfully created recipe {}", &body.title),
+    )
+      .into_response()
 }
 
 #[derive(Deserialize, Serialize)]

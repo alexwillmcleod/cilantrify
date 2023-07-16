@@ -7,7 +7,7 @@ use axum::{
   extract::{Json, Query, State},
   http::StatusCode,
   response::{IntoResponse, Redirect, Response},
-  routing::post,
+  routing::{get, post},
   Router,
 };
 use axum_macros::debug_handler;
@@ -33,8 +33,37 @@ use super::jwt::UserClaims;
 pub fn sso_routes() -> Router<Arc<AppState>> {
   Router::new()
     .route("/", post(continue_with_sso))
+    .route("/exists", get(account_exists))
     .route("/sign-in", post(sign_in))
     .route("/create", post(create_account))
+}
+
+#[derive(Deserialize, Serialize)]
+struct AccountExistsQuery {
+  email: String,
+}
+
+#[debug_handler]
+async fn account_exists(
+  State(state): State<Arc<AppState>>,
+  Query(body): Query<AccountExistsQuery>,
+) -> Response {
+  match sqlx::query!(
+    "
+    SELECT *
+    FROM 
+      users
+    WHERE email = $1 
+  ",
+    body.email
+  )
+  .fetch_one(&state.db)
+  .await
+  {
+    Ok(..) => StatusCode::FOUND,
+    Err(..) => StatusCode::NOT_FOUND,
+  }
+  .into_response()
 }
 
 #[derive(Deserialize, Serialize)]
@@ -55,7 +84,6 @@ async fn continue_with_sso(
   dotenv().ok();
   let email_address = body.email.clone();
   let code = generate_random_code();
-
   let res = sqlx::query!(
     r#"INSERT INTO sign_in_codes (email, code) VALUES ($1, $2)"#,
     &email_address.clone(),

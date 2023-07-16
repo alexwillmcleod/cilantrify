@@ -20,7 +20,7 @@ export default function RecipePreview(props: any) {
                   {element.name}
                   <span class="italic">
                     {element.amount}
-                    {element.measurement}
+                    {element.measurement == 'Units' ? '' : element.measurement}
                   </span>
                 </div>
               </li>

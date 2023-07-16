@@ -5,6 +5,7 @@ import Navbar from '../components/Navbar';
 import { useAuth } from '../hooks/useAuth';
 import { writeClipboard } from '@solid-primitives/clipboard';
 import { useNavigate } from '@solidjs/router';
+import defaultAvatar from '/default-avatar.svg';
 
 interface Ingredient {
   name: string;
@@ -102,7 +103,7 @@ export default function ViewRecipe() {
             <span class="flex flex-row gap-3 justify-center">
               <img
                 class="object-cover aspect-1/1 w-8 h-8 rounded-full"
-                src={recipe()!.author_profile}
+                src={recipe()!.author_profile || defaultAvatar}
               />
               <h2 class="font-bold text-center text-2xl">
                 {recipe()!.author_given_name} {recipe()!.author_family_name}
