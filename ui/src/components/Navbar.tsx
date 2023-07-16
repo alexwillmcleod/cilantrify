@@ -1,4 +1,5 @@
 import defaultAvatar from '/default-avatar.svg';
+import appLogo from '/whisk-logo.svg';
 import { A, useNavigate } from '@solidjs/router';
 import { useAuth } from '../hooks/useAuth';
 import Settings from './Settings';
@@ -16,9 +17,15 @@ export default function Navbar() {
         <div class="navbar-start">
           <A
             href={user() == undefined ? '/' : '/for-you'}
-            class="font-display font-bold text-3xl text-primary"
+            class="flex flex-row gap-3 items-center"
           >
-            Cilantrify
+            <img
+              class="w-16 md:w-12"
+              src={appLogo}
+            />
+            <p class="hidden font-display font-bold text-primary text-4xl md:flex">
+              Cilantrify
+            </p>
           </A>
         </div>
         {/* <div class="navbar-center">
@@ -68,7 +75,7 @@ export default function Navbar() {
                   Settings
                 </button>
               </li>
-              {user() && (
+              {user() ? (
                 <li>
                   <button
                     onClick={() => {
@@ -77,6 +84,16 @@ export default function Navbar() {
                     }}
                   >
                     Logout
+                  </button>
+                </li>
+              ) : (
+                <li>
+                  <button
+                    onClick={() => {
+                      navigate('/auth/options');
+                    }}
+                  >
+                    Sign In
                   </button>
                 </li>
               )}
