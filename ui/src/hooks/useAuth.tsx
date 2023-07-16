@@ -5,7 +5,7 @@ import {
   Accessor,
   onMount,
 } from 'solid-js';
-import axios, { AxiosError } from 'axios';
+import axios from 'axios';
 import Cookies from 'js-cookie';
 
 const AuthContext = createContext<{

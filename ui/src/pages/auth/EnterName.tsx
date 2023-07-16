@@ -1,4 +1,4 @@
-import { Accessor, createSignal } from 'solid-js';
+import { Accessor } from 'solid-js';
 import Buddies from '/buddies.svg';
 import axios from 'axios';
 
@@ -13,7 +13,6 @@ interface EnterNameProps {
 }
 
 export default function EnterName({
-  code,
   email,
   givenName,
   setGivenName,
@@ -23,7 +22,7 @@ export default function EnterName({
 }: EnterNameProps) {
   const handleContinue = async () => {
     try {
-      const res = await axios.post('/auth/sso', {
+      await axios.post('/auth/sso', {
         email: email(),
       });
       goToSend();

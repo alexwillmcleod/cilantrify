@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { Accessor } from 'solid-js';
 import { useAuth } from '../../hooks/useAuth';
 import { useNavigate } from '@solidjs/router';

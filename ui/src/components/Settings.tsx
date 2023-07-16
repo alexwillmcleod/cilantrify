@@ -64,7 +64,7 @@ export default function Settings({ isVisible }: SettingsProps) {
   const onSave = async () => {
     if (isProfileImageChanged()) {
       try {
-        const res = await axios.put('/profile/update-profile-picture', {
+        await axios.put('/profile/update-profile-picture', {
           image: newProfileImage()!.split(',')[1],
         });
         setProfilePicture(newProfileImage() as string);

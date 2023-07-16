@@ -46,7 +46,7 @@ export default function EnterEmail({
       }
 
       // If they account is found
-      const signInRes = await axios.post('/auth/sso', {
+      await axios.post('/auth/sso', {
         email: email(),
       });
 

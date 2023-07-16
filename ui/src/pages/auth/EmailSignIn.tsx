@@ -17,10 +17,10 @@ export default function EmailSignIn() {
     setStep(step() + 1);
   };
 
-  const handlePreviousStep = () => {
-    if (step() != 0) return;
-    setStep(step() - 1);
-  };
+  // const handlePreviousStep = () => {
+  //   if (step() != 0) return;
+  //   setStep(step() - 1);
+  // };
 
   const handleGoToName = () => {
     setStep(1);
