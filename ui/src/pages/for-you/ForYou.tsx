@@ -42,7 +42,7 @@ export default function ForYou() {
       const res = await axios.get('/recipe/page', {
         params: {
           page: page(),
-          limit: 3,
+          limit: 5,
         },
       });
 
@@ -61,7 +61,7 @@ export default function ForYou() {
         params: {
           search: searchTerm(),
           page: page(),
-          limit: 3,
+          limit: 5,
         },
       });
 

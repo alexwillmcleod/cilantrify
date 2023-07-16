@@ -15,10 +15,10 @@ export default function RecipeElement(props: RecipeElementProps) {
     console.log(props.image);
   });
   return (
-    <div class="card w-screen-xl max-w-screen-sm bg-base-100 shadow-xl">
+    <div class="card max-w-sm bg-base-100 shadow-xl">
       <img
         src={props.image}
-        class="object-cover aspect-video w-128 h-64"
+        class="object-cover aspect-video w-128 h-64 rounded-xl"
         alt={props.title}
       />
       <div class="card-body">
