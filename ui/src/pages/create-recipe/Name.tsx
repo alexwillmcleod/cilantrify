@@ -17,7 +17,7 @@ export default function Name(props: NameProps) {
   };
 
   return (
-    <div class="flex flex-col gap-8 justify-center items-center p-3 sm:p-20 mb-16">
+    <div class="flex flex-col gap-8 justify-center items-center px-3 pb-36">
       <span class="flex flex-col gap-4 w-full justify-center items-center">
         <p class="text-display text-xl">Name your recipe</p>
         <input
