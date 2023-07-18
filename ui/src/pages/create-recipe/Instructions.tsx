@@ -1,8 +1,8 @@
 import InstructionElement from './InstructionElement';
-import { createSignal } from 'solid-js';
+import { Accessor, createSignal } from 'solid-js';
 
 interface InstructionsProps {
-  instructions: Function;
+  instructions: Accessor<string[]>;
   setInstructions: Function;
 }
 
@@ -10,16 +10,33 @@ export default function Instructions({
   instructions,
   setInstructions,
 }: InstructionsProps) {
-  const [newInstruction, setNewInstruction] = createSignal('');
+  const [newInstruction, setNewInstruction] = createSignal<string>('');
+  const [editedInstruction, setEditedInstruction] = createSignal<string>('');
+  const [editedIndex, setEditedIndex] = createSignal<number>(0);
 
   const handleRemoveElement = (index: number) => {
     setInstructions(instructions().filter((_: any, i: number) => i != index));
   };
 
   const handleAddElement = () => {
-    console.log('Adding element');
     setInstructions([...instructions(), newInstruction()]);
     setNewInstruction('');
+  };
+
+  const handleEditElement = (index: number) => {
+    setEditedIndex(index);
+    setEditedInstruction(instructions()[index]);
+    (
+      window as Window & typeof globalThis & { edit_instructions_modal: any }
+    ).edit_instructions_modal.showModal();
+  };
+
+  const handleUpdateElement = () => {
+    setInstructions([
+      ...instructions().slice(0, editedIndex()),
+      editedInstruction(),
+      ...instructions().slice(editedIndex() + 1),
+    ]);
   };
 
   return (
@@ -54,6 +71,7 @@ export default function Instructions({
           value={value}
           index={index}
           handleRemoveElement={handleRemoveElement}
+          handleEditElement={handleEditElement}
         />
       ))}
       {(instructions() as string[]).length == 0 ? (
@@ -64,7 +82,7 @@ export default function Instructions({
 
       <dialog
         id="add_instructions_modal"
-        class="modal"
+        class="modal modal-bottom sm:modal-middle"
       >
         <form
           method="dialog"
@@ -74,12 +92,12 @@ export default function Instructions({
             ✕
           </button>
           <h3 class="font-bold text-lg">Add Instruction</h3>
-          <div class="flex flex-col gap-1 ">
+          <div class="flex flex-col gap-1 w-full">
             <textarea
               onChange={(e) => setNewInstruction(e.target.value)}
               value={newInstruction()}
               placeholder="Type here"
-              class="textarea textarea-bordered vertical horizontal w-full max-w-xs"
+              class="textarea textarea-bordered textarea-lg resize-none sm:resize w-full max-w-full"
             />
           </div>
 
@@ -89,6 +107,38 @@ export default function Instructions({
               class="btn btn-sm btn-primary"
             >
               Add
+            </button>
+            <button class="btn btn-sm">Cancel</button>
+          </div>
+        </form>
+      </dialog>
+      <dialog
+        id="edit_instructions_modal"
+        class="modal modal-bottom sm:modal-middle"
+      >
+        <form
+          method="dialog"
+          class="modal-box flex flex-col gap-5 p-10"
+        >
+          <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
+            ✕
+          </button>
+          <h3 class="font-bold text-lg">Edit Instruction</h3>
+          <div class="flex flex-col gap-1 w-full">
+            <textarea
+              onChange={(e) => setEditedInstruction(e.target.value)}
+              value={editedInstruction()}
+              placeholder="Type here"
+              class="textarea textarea-bordered textarea-lg resize-none sm:resize w-full max-w-full"
+            />
+          </div>
+
+          <div class="modal-action">
+            <button
+              onClick={handleUpdateElement}
+              class="btn btn-sm btn-primary"
+            >
+              Save
             </button>
             <button class="btn btn-sm">Cancel</button>
           </div>

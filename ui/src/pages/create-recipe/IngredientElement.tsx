@@ -1,7 +1,7 @@
 export interface IngredientElementProps {
   name: string;
   amount: number;
-  measurement: 'mL' | 'L' | 'g' | 'ng' | 'kg' | 'Units';
+  measurement: 'mL' | 'L' | 'g' | 'mg' | 'kg' | 'Units';
 }
 
 export default function IngredientElement({
@@ -10,15 +10,17 @@ export default function IngredientElement({
   measurement,
   index,
   handleRemoveElement,
+  handleEditElement,
 }: IngredientElementProps & {
   index: number;
   handleRemoveElement: (index: number) => void;
+  handleEditElement: (index: number) => void;
 }) {
   return (
     <div class="card w-96 pt-4 bg-base-100 shadow-xl">
       <div class="card-body relative">
         <div class="card-actions absolute top-4 right-4">
-          <div class="dropdown dropdown-bottom">
+          <div class="dropdown dropdown-end">
             <label
               tabindex="0"
               class="btn btn-sm btn-ghost m-1"
@@ -35,11 +37,14 @@ export default function IngredientElement({
               tabindex="0"
               class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52"
             >
-              {/* <li>
-                <button class="flex flex-col justify-center items-center">
+              <li>
+                <button
+                  onClick={() => handleEditElement(index)}
+                  class="flex flex-col justify-center items-center"
+                >
                   Edit
                 </button>
-              </li> */}
+              </li>
               <li>
                 <button
                   onClick={() => handleRemoveElement(index)}

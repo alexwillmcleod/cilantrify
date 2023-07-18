@@ -2,10 +2,12 @@ export default function InstructionElement({
   value,
   index,
   handleRemoveElement,
+  handleEditElement,
 }: {
   value: string;
   index: number;
   handleRemoveElement: (index: number) => void;
+  handleEditElement: (index: number) => void;
 }) {
   return (
     <div class="card w-96 pt-4 bg-base-100 shadow-xl">
@@ -28,11 +30,14 @@ export default function InstructionElement({
               tabindex="0"
               class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52"
             >
-              {/* <li>
-                <button class="flex flex-col justify-center items-center">
+              <li>
+                <button
+                  onClick={() => handleEditElement(index)}
+                  class="flex flex-col justify-center items-center"
+                >
                   Edit
                 </button>
-              </li> */}
+              </li>
               <li>
                 <button
                   onClick={() => handleRemoveElement(index)}

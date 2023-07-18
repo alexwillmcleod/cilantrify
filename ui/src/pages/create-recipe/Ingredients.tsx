@@ -16,6 +16,11 @@ export default function Ingredients({
   const [newIngredientAmount, setNewIngredientAmount] = createSignal('');
   const [newIngredientMeasurement, setNewIngredientMeasurement] =
     createSignal('Units');
+  const [editedIngredientName, setEditedIngredientName] = createSignal('');
+  const [editedIngredientAmount, setEditedIngredientAmount] = createSignal('');
+  const [editedIngredientMeasurement, setEditedIngredientMeasurement] =
+    createSignal('Units');
+  const [editIndex, setEditIndex] = createSignal<number>(0);
 
   const handleRemoveElement = (index: number) => {
     setIngredients(ingredients().filter((_: any, i: number) => i != index));
@@ -43,6 +48,41 @@ export default function Ingredients({
     setNewIngredientName('');
     setNewIngredientAmount('');
     setNewIngredientMeasurement('Units');
+  };
+
+  const handleEditElement = (index: number) => {
+    setEditedIngredientName(ingredients()[index].name);
+    setEditedIngredientAmount(ingredients()[index].amount);
+    setEditedIngredientMeasurement(ingredients()[index].measurement);
+    (
+      window as Window & typeof globalThis & { edit_ingredients_modal: any }
+    ).edit_ingredients_modal.showModal();
+    setEditIndex(index);
+  };
+
+  const handleUpdateElement = () => {
+    if (editedIngredientAmount() == '') {
+      addSnackBar(
+        <div class="alert alert-error transition-all">
+          <span>Ingredient amount must be selected</span>
+        </div>,
+        2000
+      );
+      return;
+    }
+
+    setIngredients([
+      ...ingredients().slice(0, editIndex()),
+      {
+        name: editedIngredientName(),
+        amount: editedIngredientAmount(),
+        measurement: editedIngredientMeasurement(),
+      },
+      ...ingredients().slice(editIndex() + 1),
+    ]);
+    setEditedIngredientName('');
+    setEditedIngredientAmount('');
+    setEditedIngredientMeasurement('Units');
   };
 
   return (
@@ -83,6 +123,7 @@ export default function Ingredients({
             measurement={measurement}
             index={index}
             handleRemoveElement={handleRemoveElement}
+            handleEditElement={handleEditElement}
           />
         )
       )}
@@ -94,7 +135,7 @@ export default function Ingredients({
 
       <dialog
         id="add_ingredients_modal"
-        class="modal"
+        class="modal modal-bottom sm:modal-middle"
       >
         <form
           method="dialog"
@@ -131,7 +172,9 @@ export default function Ingredients({
               <option
                 value="Units"
                 selected
-              ></option>
+              >
+                Units
+              </option>
               <option>mL</option>
               <option>L</option>
               <option>g</option>
@@ -145,6 +188,67 @@ export default function Ingredients({
               class="btn btn-sm btn-primary"
             >
               Add
+            </button>
+            <button class="btn btn-sm">Cancel</button>
+          </div>
+        </form>
+      </dialog>
+
+      <dialog
+        id="edit_ingredients_modal"
+        class="modal modal-bottom sm:modal-middle"
+      >
+        <form
+          method="dialog"
+          class="modal-box flex flex-col gap-5 p-10"
+        >
+          <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
+            ✕
+          </button>
+          <h3 class="font-bold text-lg">Edit Ingredient</h3>
+          <div class="flex flex-col gap-1 ">
+            <p class="text-display text-md">Name</p>
+            <input
+              onChange={(e) => setEditedIngredientName(e.target.value)}
+              class="input font-normal input-bordered w-full max-w-xs"
+              value={editedIngredientName()}
+            />
+          </div>
+          <div class="flex flex-col gap-1 ">
+            <p class="text-display text-md">Amount</p>
+            <input
+              onChange={(e) => setEditedIngredientAmount(e.target.value)}
+              type="number"
+              class="input font-normal input-bordered w-full max-w-xs"
+              value={editedIngredientAmount()}
+            />
+          </div>
+          <div class="flex flex-col gap-1 ">
+            <p class="text-display text-md">Measurement</p>
+            <select
+              onChange={(e) => setEditedIngredientMeasurement(e.target.value)}
+              class="select font-normal select-bordered w-full max-w-xs"
+              value={editedIngredientMeasurement()}
+            >
+              <option
+                value="Units"
+                selected
+              >
+                Units
+              </option>
+              <option>mL</option>
+              <option>L</option>
+              <option>g</option>
+              <option>mg</option>
+              <option>kg</option>
+            </select>
+          </div>
+          <div class="modal-action">
+            <button
+              onClick={handleUpdateElement}
+              class="btn btn-sm btn-primary"
+            >
+              Save
             </button>
             <button class="btn btn-sm">Cancel</button>
           </div>

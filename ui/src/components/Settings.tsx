@@ -77,7 +77,7 @@ export default function Settings({ isVisible }: SettingsProps) {
   return (
     <dialog
       id="settings_modal"
-      class="modal"
+      class="modal modal-bottom sm:modal-middle"
     >
       <form
         method="dialog"
@@ -99,15 +99,15 @@ export default function Settings({ isVisible }: SettingsProps) {
               <a>Item 3</a>
             </li>
           </ul> */}
-          <div class="flex flex-col gap-2">
+          <div class="flex flex-col gap-4 w-full">
             <p>Profile Settings</p>
             <label>
-              <span class="btn p-4 h-fit flex flex-row gap-4 items-center">
+              <span class="btn btn-xs p-4 w-full sm:max-w-xs h-fit flex flex-row gap-4 items-center ">
                 <img
                   class="rounded-full w-12"
                   src={newProfileImage() as string}
                 />
-                Change Profile Picture
+                <p class="text-md">Change Profile Picture</p>
               </span>
               <input
                 type="file"
@@ -115,12 +115,14 @@ export default function Settings({ isVisible }: SettingsProps) {
                 onChange={uploadNewProfileImage}
               ></input>
             </label>
-            <button
-              onClick={onSave}
-              class="btn btn-primary absolute right-5 bottom-5"
-            >
-              Save
-            </button>
+            <div class="flex flex-row w-full justify-end">
+              <button
+                onClick={onSave}
+                class="btn btn-primary w-16"
+              >
+                Save
+              </button>
+            </div>
           </div>
         </div>
       </form>
