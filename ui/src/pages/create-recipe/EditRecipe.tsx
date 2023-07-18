@@ -277,7 +277,9 @@ export default function EditRecipe() {
           method="dialog"
           class="modal-box"
         >
-          <h3 class="text-lg">You must be signed in to create a recipe</h3>
+          <h3 class="text-lg">
+            You must be signed in as {authorName()} to edit this recipe
+          </h3>
           <div class="modal-action">
             <A
               href="/auth/options"
