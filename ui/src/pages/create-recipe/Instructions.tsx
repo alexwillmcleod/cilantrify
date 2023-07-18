@@ -40,7 +40,7 @@ export default function Instructions({
   };
 
   return (
-    <div class="flex flex-col gap-4 justify-center items-center px-20 pt-10 pb-40">
+    <div class="flex flex-col gap-4 justify-center items-center px-5 sm:px-20 pt-10 pb-40">
       <span class="flex flex-row gap-4 justify-center items-center">
         <p class="text-display font-bold text-2xl">Instructions</p>
         <button

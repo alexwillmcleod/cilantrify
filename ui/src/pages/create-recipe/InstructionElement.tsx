@@ -10,7 +10,7 @@ export default function InstructionElement({
   handleEditElement: (index: number) => void;
 }) {
   return (
-    <div class="card w-3/6 pt-4 bg-base-100 shadow-xl">
+    <div class="card w-full sm:w-3/6 pt-4 bg-base-100 shadow-xl">
       <div class="card-body relative">
         <div class="card-actions absolute top-4 right-4">
           <div class="dropdown dropdown-bottom">
