@@ -1,5 +1,5 @@
 import Join from '/join.svg';
-import { Accessor } from 'solid-js';
+import { Accessor, createSignal } from 'solid-js';
 import axios from 'axios';
 
 interface EnterEmailProps {
@@ -17,12 +17,22 @@ export default function EnterEmail({
   goToSend,
   setIsNew,
 }: EnterEmailProps) {
+  const [isLoading, setIsLoading] = createSignal<boolean>(false);
+  const [isEmailInvalid, setIsEmailInvalid] = createSignal<boolean>(false);
+
   const handleContinue = async () => {
+    if (isLoading()) return;
+    setIsEmailInvalid(false);
+    setIsLoading(true);
     const emailRegex = new RegExp(
       '^[a-zA-Z0-9]+(?:.[a-zA-Z0-9]+)*@[a-zA-Z0-9]+(?:.[a-zA-Z0-9]+)*$'
     );
     const test: boolean = emailRegex.test(email());
-    if (!test) return;
+    if (!test) {
+      setIsLoading(false);
+      setIsEmailInvalid(true);
+      return;
+    }
 
     try {
       const res = await axios.get('/auth/sso/exists', {
@@ -37,11 +47,13 @@ export default function EnterEmail({
       if (res.status === 404) {
         setIsNew(true);
         goToName();
+        setIsLoading(false);
         return;
       }
 
       if (res.status !== 302) {
         // Handle error
+        setIsLoading(false);
         return;
       }
 
@@ -50,6 +62,7 @@ export default function EnterEmail({
         email: email(),
       });
 
+      setIsLoading(false);
       goToSend();
     } catch (err: any) {
       console.error(err);
@@ -66,15 +79,24 @@ export default function EnterEmail({
         <h1 class="text-5xl font-bold">Let's go!</h1>
         <div class="form-control w-full max-w-md">
           <label class="label">
-            <span class="label-text">Continue with Email</span>
+            <span class="label-text text-lg">Continue with Email</span>
           </label>
           <input
             type="email"
             placeholder="Your Email"
-            class="input input-bordered w-full max-w-md "
+            class="input input-bordered w-full max-w-md text-lg p-5"
             value={email()}
             onChange={(e) => setEmail(e.target.value)}
           />
+          <label class="label">
+            <span
+              class={`text-lg label-text-alt text-error ${
+                isEmailInvalid() ? 'flex' : 'opacity-0'
+              }`}
+            >
+              Invalid Email Address
+            </span>
+          </label>
         </div>
         <button
           onClick={handleContinue}
@@ -82,6 +104,13 @@ export default function EnterEmail({
         >
           Continue
         </button>
+      </div>
+      <div
+        class={`fixed top-0 left-0 w-screen z-1000 h-screen justify-center items-center ${
+          isLoading() ? 'flex' : 'hidden'
+        } bg-white/5`}
+      >
+        <span class="loading loading-spinner loading-lg text-primary"></span>
       </div>
     </div>
   );

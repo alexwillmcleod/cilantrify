@@ -13,7 +13,7 @@ export default function Confirm(props: {
   });
 
   return (
-    <div class="p-100">
+    <div class="pb-24 p-4">
       {props.image() && (
         <RecipePreview
           image={props.image()!}

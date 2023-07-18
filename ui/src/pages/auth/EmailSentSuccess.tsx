@@ -1,4 +1,4 @@
-import { Accessor } from 'solid-js';
+import { Accessor, createSignal } from 'solid-js';
 import { useAuth } from '../../hooks/useAuth';
 import { useNavigate } from '@solidjs/router';
 
@@ -24,9 +24,14 @@ export default function EmailSuccess({
   onNext,
 }: EmailSuccessProps) {
   const { handleSSOLogin, handleSSOCreate } = useAuth()!;
+  const [isLoading, setIsLoading] = createSignal<boolean>(false);
+  const [isCodeInvalid, setIsCodeInvalid] = createSignal<boolean>(false);
   const navigate = useNavigate();
 
   const handleContinue = async () => {
+    if (isLoading()) return;
+    setIsCodeInvalid(false);
+    setIsLoading(true);
     try {
       if (isNew()) {
         await handleSSOCreate(
@@ -40,36 +45,54 @@ export default function EmailSuccess({
       }
       navigate('/for-you');
     } catch (err) {
-      console.error(err);
+      setIsCodeInvalid(true);
     }
+    setIsLoading(false);
     onNext();
   };
   return (
     <div class="flex flex-col justify-center items-center px-4 md:px-24 py-12 gap-8">
-      <h2 class="font-bold text-xl text-center">
-        Email Successfully sent to {email()}
+      <h2 class="text-2xl text-center">
+        Email Successfully sent to
+        <p class="font-bold">{email()}</p>
       </h2>
       <span class="flex flex-col gap-4">
         <input
           type="text"
           placeholder="Code"
-          class="input input-bordered w-full max-w-xs"
+          class="input input-bordered w-full max-w-xs text-xl"
           value={code()}
           onChange={(e) => setCode(e.target.value)}
         />
+        <label class="label">
+          <span
+            class={`text-lg label-text-alt text-error ${
+              isCodeInvalid() ? 'flex' : 'opacity-0'
+            }`}
+          >
+            Invalid Code
+          </span>
+        </label>
         <button
           onClick={handleContinue}
-          class="btn btn-primary btn-md"
+          class="btn btn-primary btn-md text-xl"
         >
           Enter Code
         </button>
         <button
           onClick={onPrevious}
-          class="text-md text-blue-300"
+          class="text-blue-300 text-lg"
         >
           I mispelt the email
         </button>
       </span>
+      <div
+        class={`fixed top-0 left-0 w-screen z-1000 h-screen justify-center items-center ${
+          isLoading() ? 'flex' : 'hidden'
+        } bg-white/5`}
+      >
+        <span class="loading loading-spinner loading-lg text-primary"></span>
+      </div>
     </div>
   );
 }

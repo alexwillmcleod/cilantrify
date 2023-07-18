@@ -43,9 +43,14 @@ export const AuthProvider = (props: any) => {
   };
 
   const handleGoogleLogin = async (code: string) => {
-    const res = await axios.post('/auth/google/callback', {
-      code,
-    });
+    let res;
+    try {
+      res = await axios.post('/auth/google/callback', {
+        code,
+      });
+    } catch (err) {
+      throw err;
+    }
     const token = await res.data;
     Cookies.set('cilantrify-api-token', token, {
       secure: true,
@@ -57,10 +62,15 @@ export const AuthProvider = (props: any) => {
 
   const handleSSOLogin = async (email: string, code: number) => {
     // We are going to handle logging in with email and code
-    const res = await axios.post('/auth/sso/sign-in', {
-      email,
-      code,
-    });
+    let res;
+    try {
+      res = await axios.post('/auth/sso/sign-in', {
+        email,
+        code,
+      });
+    } catch (err) {
+      throw err;
+    }
     const token = await res.data;
     Cookies.set('cilantrify-api-token', token, {
       secure: true,

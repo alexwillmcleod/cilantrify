@@ -39,9 +39,10 @@ export default function ForYou() {
 
   const getPage = async () => {
     try {
-      const res = await axios.get('/recipe/page', {
+      const res = await axios.get('/recipe/search', {
         params: {
           page: page(),
+          search: '',
           limit: 5,
         },
       });

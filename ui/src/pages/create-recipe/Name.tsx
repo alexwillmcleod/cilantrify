@@ -30,8 +30,9 @@ export default function Name(props: NameProps) {
       <span class="flex flex-col gap-4 w-full justify-center items-center">
         <p class="text-display text-xl">Create a description</p>
         <textarea
-          class="textarea textarea-bordered w-full max-w-xs text-lg"
+          class="textarea textarea-bordered resize-none sm:resize min-w-[20rem] max-w-2xl text-lg p-4"
           placeholder="Optional"
+          rows={5}
           value={props.description()}
           onChange={handleDescriptionChange}
         />

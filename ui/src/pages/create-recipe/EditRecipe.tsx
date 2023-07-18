@@ -1,11 +1,11 @@
 import Navbar from '../../components/Navbar';
 import axios from 'axios';
-import { createSignal, JSXElement } from 'solid-js';
+import { createSignal, JSXElement, onMount } from 'solid-js';
 import Ingredients from './Ingredients';
 import Instructions from './Instructions';
 import Name from './Name';
 import Confirm from './Confirm';
-import { A, useNavigate } from '@solidjs/router';
+import { A, useNavigate, useParams } from '@solidjs/router';
 import { IngredientElementProps } from './IngredientElement';
 import { useAuth } from '../../hooks/useAuth';
 import ImageStep from './Image';
@@ -50,12 +50,15 @@ const StepProgressBar = (props: any) => (
   </div>
 );
 
-export default function CreateRecipe() {
+export default function EditRecipe() {
+  const params = useParams();
+  const { id } = params;
   const { user } = useAuth()!;
   const navigate = useNavigate();
 
   const [isLoading, setIsLoading] = createSignal<boolean>(false);
   const [step, setStep]: [Function, Function] = createSignal<number>(0);
+  const [authorName, setAuthorName] = createSignal<string>('');
 
   const [snackBarElements, setSnackBarElements] = createSignal<JSXElement[]>(
     []
@@ -70,11 +73,44 @@ export default function CreateRecipe() {
   const [image, setImage] = createSignal<string | undefined>(undefined);
   const [imageName, setImageName] = createSignal<string>('');
 
+  onMount(async () => {
+    try {
+      const res = await axios.get(`/recipe`, {
+        params: {
+          recipe_id: id,
+        },
+      });
+      if (!user()) {
+        (
+          window as Window & typeof globalThis & { unauthenticated_modal: any }
+        ).unauthenticated_modal.showModal();
+      }
+      if (res.data.author_id != user()!.id) {
+        (
+          window as Window & typeof globalThis & { unauthenticated_modal: any }
+        ).unauthenticated_modal.showModal();
+      }
+      console.log(res.data);
+      setAuthorName(
+        `${res.data.author_given_name} ${res.data.author_family_name}`
+      );
+      setName(res.data.title);
+      setDescription(res.data.description);
+      setImage(res.data.picture);
+      setIngredients(res.data.ingredients);
+      setInstructions(res.data.instructions);
+    } catch (err) {
+      console.error(err);
+      navigate('/edit/not-found');
+    }
+  });
+
   const handleSubmitRecipe = async () => {
     if (isLoading()) return;
     setIsLoading(true);
     try {
-      await axios.post('/recipe', {
+      await axios.put('/recipe/edit', {
+        id: Number.parseInt(id),
         title: name(),
         description: description(),
         ingredients: ingredients(),
@@ -88,7 +124,7 @@ export default function CreateRecipe() {
       setIsLoading(false);
       addSnackBar(
         <div class="alert alert-error transition-all">
-          <span>Failed to create recipe</span>
+          <span>Failed to edit recipe</span>
         </div>,
         2000
       );

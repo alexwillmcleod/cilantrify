@@ -13,6 +13,7 @@ import ViewRecipe from './pages/ViewRecipe';
 import ViewProfile from './pages/ViewProfile';
 import RecipeNotFound from './pages/RecipeNotFound';
 import EmailSignIn from './pages/auth/EmailSignIn';
+import EditRecipe from './pages/create-recipe/EditRecipe';
 
 const root = document.getElementById('root');
 axios.defaults.baseURL = import.meta.env.VITE_API_URL;
@@ -31,6 +32,16 @@ render(
             path="/create"
             component={CreateRecipe}
           />
+          <Route path="/edit">
+            <Route
+              path="/:id"
+              component={EditRecipe}
+            />
+            <Route
+              path="/not-found"
+              component={RecipeNotFound}
+            />
+          </Route>
           <Route
             path="/for-you"
             component={ForYou}

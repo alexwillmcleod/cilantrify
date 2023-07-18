@@ -56,8 +56,10 @@ export default function IngredientElement({
             </ul>
           </div>
         </div>
-        <p class="text-ellipsis overflow-hidden font-bold pr-10">{name}</p>
-        <p>
+        <p class="text-ellipsis overflow-hidden font-bold pr-10 text-lg">
+          {name}
+        </p>
+        <p class="text-ellipsis overflow-hidden text-lg">
           {amount}
           {measurement != 'Units' ? measurement : ''}
         </p>

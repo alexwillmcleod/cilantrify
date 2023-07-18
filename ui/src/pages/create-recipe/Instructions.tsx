@@ -40,9 +40,9 @@ export default function Instructions({
   };
 
   return (
-    <div class="flex flex-col gap-4 justify-center items-center p-20">
+    <div class="flex flex-col gap-4 justify-center items-center px-20 pt-10 pb-40">
       <span class="flex flex-row gap-4 justify-center items-center">
-        <p class="text-display font-bold text-xl">Instructions</p>
+        <p class="text-display font-bold text-2xl">Instructions</p>
         <button
           onClick={() =>
             (
@@ -75,11 +75,10 @@ export default function Instructions({
         />
       ))}
       {(instructions() as string[]).length == 0 ? (
-        <p class="pt-10">No instructions. Add some to get started</p>
+        <p class="pt-10 text-lg">No instructions. Add some to get started</p>
       ) : (
         <></>
       )}
-
       <dialog
         id="add_instructions_modal"
         class="modal modal-bottom sm:modal-middle"
@@ -95,9 +94,10 @@ export default function Instructions({
           <div class="flex flex-col gap-1 w-full">
             <textarea
               onChange={(e) => setNewInstruction(e.target.value)}
+              rows={12}
               value={newInstruction()}
               placeholder="Type here"
-              class="textarea textarea-bordered textarea-lg resize-none sm:resize w-full max-w-full"
+              class="textarea textarea-bordered textarea-md text-lg max-w-full resize-none w-full"
             />
           </div>
 
@@ -114,11 +114,11 @@ export default function Instructions({
       </dialog>
       <dialog
         id="edit_instructions_modal"
-        class="modal modal-bottom sm:modal-middle"
+        class="modal modal-bottom sm:modal-middle overflow-hidden"
       >
         <form
           method="dialog"
-          class="modal-box flex flex-col gap-5 p-10"
+          class="modal-box w-11/12 max-w-5xl gap-5 p-10"
         >
           <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
             ✕
@@ -129,7 +129,8 @@ export default function Instructions({
               onChange={(e) => setEditedInstruction(e.target.value)}
               value={editedInstruction()}
               placeholder="Type here"
-              class="textarea textarea-bordered textarea-lg resize-none sm:resize w-full max-w-full"
+              rows={12}
+              class="textarea textarea-bordered textarea-md text-lg max-w-full resize-none w-full"
             />
           </div>
 

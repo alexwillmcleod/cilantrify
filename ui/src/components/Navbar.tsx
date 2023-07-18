@@ -57,7 +57,7 @@ export default function Navbar() {
             </label>
             <ul
               tabindex="0"
-              class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52"
+              class="menu menu-lg sm:menu-md dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52"
             >
               {user() && (
                 <li>
@@ -82,6 +82,7 @@ export default function Navbar() {
               {user() ? (
                 <li>
                   <button
+                    class="text-error"
                     onClick={() => {
                       handleLogout();
                       navigate('/');

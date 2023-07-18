@@ -157,7 +157,20 @@ export default function ViewRecipe() {
                     class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52"
                   >
                     <li>
-                      <button onClick={handleDeleteRecipe}>Delete</button>
+                      <A
+                        class="text-info"
+                        href={`/edit/${id}`}
+                      >
+                        Edit
+                      </A>
+                    </li>
+                    <li>
+                      <button
+                        class="text-error"
+                        onClick={handleDeleteRecipe}
+                      >
+                        Delete
+                      </button>
                     </li>
                   </ul>
                 </div>

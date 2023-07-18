@@ -104,10 +104,10 @@ export default function Settings({ isVisible }: SettingsProps) {
             <label>
               <span class="btn btn-xs p-4 w-full sm:max-w-xs h-fit flex flex-row gap-4 items-center ">
                 <img
-                  class="rounded-full w-12"
+                  class="rounded-full w-24"
                   src={newProfileImage() as string}
                 />
-                <p class="text-md">Change Profile Picture</p>
+                <p class="text-lg">Change Profile Picture</p>
               </span>
               <input
                 type="file"
