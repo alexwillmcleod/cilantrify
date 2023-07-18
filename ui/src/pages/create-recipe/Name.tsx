@@ -17,11 +17,11 @@ export default function Name(props: NameProps) {
   };
 
   return (
-    <div class="flex flex-col gap-8 justify-center items-center p-20 mb-16">
+    <div class="flex flex-col gap-8 justify-center items-center p-3 sm:p-20 mb-16">
       <span class="flex flex-col gap-4 w-full justify-center items-center">
         <p class="text-display text-xl">Name your recipe</p>
         <input
-          class="input input-bordered w-full max-w-xs text-lg"
+          class="input input-lg md:min-w-[20rem] input-bordered w-full max-w-md "
           value={props.name()}
           onChange={handleNameChange}
         />
@@ -30,9 +30,9 @@ export default function Name(props: NameProps) {
       <span class="flex flex-col gap-4 w-full justify-center items-center">
         <p class="text-display text-xl">Create a description</p>
         <textarea
-          class="textarea textarea-bordered resize-none sm:resize min-w-[20rem] max-w-2xl text-lg p-4"
+          class="textarea textarea-bordered resize-none sm:resize sm:min-w-[20rem] w-full max-w-md text-lg p-4"
           placeholder="Optional"
-          rows={5}
+          rows={8}
           value={props.description()}
           onChange={handleDescriptionChange}
         />
