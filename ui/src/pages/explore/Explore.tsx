@@ -7,7 +7,7 @@ import Pagination from './Pagination';
 import SearchBar from './SearchBar';
 import { useAuth } from '../../hooks/useAuth';
 
-export default function ForYou() {
+export default function Explore() {
   const [page, setPage] = createSignal<number>(1);
   const [pageCount, setPageCount] = createSignal<number>(1);
   const [searchTerm, setSearchTerm] = createSignal<string>('');
@@ -88,7 +88,7 @@ export default function ForYou() {
     <div class="flex flex-col min-h-screen ">
       <Navbar />
       <div class="flex flex-col items-center justify-center gap-10 mb-10">
-        <h2 class="font-bold text-display text-3xl">For You</h2>
+        <h2 class="font-bold text-display text-3xl">Explore</h2>
         <SearchBar setSearchTerm={setSearchTerm} />
         {pageCount() == 0 && <p>No recipes match that search</p>}
         <ul class="flex flex-col gap-8">

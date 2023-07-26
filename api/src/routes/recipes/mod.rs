@@ -19,6 +19,7 @@ pub fn recipe_routes() -> Router<Arc<AppState>> {
     .route("/", delete(delete::delete_recipe))
     .route("/search", get(search::search_paginated))
     .route("/edit", put(update::update))
+    .route("/fetch", get(fetch::fetch_handler))
 }
 
 #[allow(non_camel_case_types)]

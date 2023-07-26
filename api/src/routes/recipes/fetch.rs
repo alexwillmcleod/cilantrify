@@ -1,8 +1,9 @@
 use std::sync::Arc;
 
-use axum::{http::StatusCode, extract::{Query, State}, response::{Response, IntoResponse}};
+use axum::{http::StatusCode, extract::{ws::{WebSocket, Message}, Query, State, WebSocketUpgrade}, response::{Response, IntoResponse}};
 use axum_macros::debug_handler;
 use serde::{Serialize, Deserialize};
+use serde_json::Result;
 
 use crate::AppState;
 
@@ -15,7 +16,7 @@ pub struct RecipeFetchQuery {
 
 #[debug_handler]
 pub async fn fetch(
-  query: Query<RecipeFetchQuery>,
+  Query(query): Query<RecipeFetchQuery>,
   State(state): State<Arc<AppState>>,
 ) -> Response {
   let recipe_id = query.recipe_id;
@@ -78,3 +79,29 @@ pub async fn fetch(
 
   (StatusCode::OK, axum::Json(Some(res))).into_response()
 }
+
+#[debug_handler]
+pub async fn fetch_handler(mut ws: WebSocketUpgrade, State(state): State<Arc<AppState>>) -> Response {
+  ws.on_upgrade(|socket| fetch_handle_socket(socket, state))
+}
+
+async fn fetch_handle_socket(
+  mut socket: WebSocket,
+  state: Arc<AppState>
+) {
+  let mut recipes_sent: u64 = 0;
+  while let Some(Ok(Message::Text(text))) = socket.recv().await {
+    let Ok(v): Result<FetchWebsocketRequest> = serde_json::from_str(text.as_str()) else {
+      socket.send(Message::Text(String::from("could not parse the json"))).await;
+      continue;
+    };
+  };
+    
+}
+
+#[derive(Serialize, Deserialize)]
+struct FetchWebsocketRequest {
+  query: String,
+  amount: u64
+}
+

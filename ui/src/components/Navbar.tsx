@@ -12,11 +12,11 @@ export default function Navbar() {
   const navigate = useNavigate();
   return (
     <>
-      <div class="navbar bg-base-100 p-10">
+      <div class="navbar bg-base-100 p-10 z-10 sticky top-0">
         {/* <div class="navbar-start"></div> */}
         <div class="navbar-start">
           <A
-            href={user() == undefined ? '/' : '/for-you'}
+            href={user() == undefined ? '/' : '/explore'}
             class="flex flex-row gap-3 items-center"
           >
             <img
