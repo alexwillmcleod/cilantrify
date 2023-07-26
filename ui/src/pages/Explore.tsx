@@ -1,16 +1,18 @@
-import Navbar from '../../components/Navbar';
-import RecipeElement from './RecipeElement';
+import Navbar from '../components/Navbar';
+import RecipeElement from '../components/RecipeElement';
 import { createEffect, createSignal } from 'solid-js';
 import axios from 'axios';
 import { A } from '@solidjs/router';
-import Pagination from './Pagination';
-import SearchBar from './SearchBar';
-import { useAuth } from '../../hooks/useAuth';
+import Pagination from '../components/Pagination';
+import SearchBar from '../components/SearchBar';
+import { useAuth } from '../hooks/useAuth';
 
 export default function Explore() {
   const [page, setPage] = createSignal<number>(1);
   const [pageCount, setPageCount] = createSignal<number>(1);
   const [searchTerm, setSearchTerm] = createSignal<string>('');
+  const [lastSearchTerm, setLastSearchTerm] = createSignal<string>('');
+  createSignal<boolean>(false);
   const { user } = useAuth()!;
 
   const handleNextPage = () => {
@@ -33,29 +35,10 @@ export default function Explore() {
       author_family_name: string;
       author_given_name: string;
       author_profile: string;
+      author_id: number;
       id: number;
     }[]
   >([]);
-
-  const getPage = async () => {
-    try {
-      const res = await axios.get('/recipe/search', {
-        params: {
-          page: page(),
-          search: '',
-          limit: 5,
-        },
-      });
-
-      setRecipes(res.data.recipes);
-      setPageCount(res.data.page_count);
-      console.log(res.data);
-    } catch (err) {
-      console.error(err);
-      return;
-    }
-  };
-
   const getSearch = async () => {
     try {
       const res = await axios.get('/recipe/search', {
@@ -68,7 +51,8 @@ export default function Explore() {
 
       setRecipes(res.data.recipes);
       setPageCount(res.data.page_count);
-      setPage(1);
+      if (lastSearchTerm() != searchTerm()) setPage(1);
+      setLastSearchTerm(searchTerm());
       console.log(res.data);
     } catch (err) {
       console.error(err);
@@ -77,11 +61,7 @@ export default function Explore() {
   };
 
   createEffect(async () => {
-    if (searchTerm() == '') {
-      getPage();
-    } else {
-      getSearch();
-    }
+    getSearch();
   });
 
   return (
@@ -98,9 +78,9 @@ export default function Explore() {
                 <RecipeElement
                   title={element.title}
                   image={element.picture}
-                  description={element.description}
                   author={`${element.author_given_name} ${element.author_family_name}`}
                   authorProfile={element.author_profile}
+                  authorId={element.author_id}
                   id={element.id}
                 />
               </li>

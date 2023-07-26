@@ -1,5 +1,6 @@
-import { createSignal } from 'solid-js';
+import { createEffect, createSignal } from 'solid-js';
 import SearchIcon from '/search-icon.svg';
+import { debounce } from 'lodash';
 
 interface SearchBarProps {
   setSearchTerm: Function;
@@ -9,8 +10,17 @@ export default function SearchBar({ setSearchTerm }: SearchBarProps) {
   const [unsubmittedSearchTerm, setUnsubmittedSearchTerm] =
     createSignal<string>('');
 
-  const handleSearchSubmit = () => {
-    setSearchTerm(unsubmittedSearchTerm());
+  const handleSearchSubmit = (searchTerm: string) => {
+    setSearchTerm(searchTerm);
+  };
+
+  const debouncedSearchSubmit = debounce((searchTerm: string) => {
+    handleSearchSubmit(searchTerm);
+  }, 500);
+
+  const handleUnsubmittedSearchTermChange = (e: any) => {
+    setUnsubmittedSearchTerm(e.target.value);
+    debouncedSearchSubmit(unsubmittedSearchTerm());
   };
 
   // return (
@@ -30,8 +40,7 @@ export default function SearchBar({ setSearchTerm }: SearchBarProps) {
         class="input input-bordered join-item w-96"
         name="search"
         value={unsubmittedSearchTerm()}
-        onChange={(e) => setUnsubmittedSearchTerm(e.target.value)}
-        onBlur={handleSearchSubmit}
+        onInput={handleUnsubmittedSearchTermChange}
         placeholder="Search..."
       />
       <button

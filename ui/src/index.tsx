@@ -8,13 +8,12 @@ import CreateRecipe from './pages/create-recipe/CreateRecipe';
 import GoogleCallback from './pages/auth/GoogleCallback';
 import { AuthProvider } from './hooks/useAuth';
 import axios from 'axios';
-import ForYou from './pages/explore/Explore';
 import ViewRecipe from './pages/ViewRecipe';
 import ViewProfile from './pages/ViewProfile';
 import RecipeNotFound from './pages/RecipeNotFound';
 import EmailSignIn from './pages/auth/EmailSignIn';
 import EditRecipe from './pages/create-recipe/EditRecipe';
-import Explore from './pages/explore/Explore';
+import Explore from './pages/Explore';
 
 const root = document.getElementById('root');
 axios.defaults.baseURL = import.meta.env.VITE_API_URL;

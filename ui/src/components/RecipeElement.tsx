@@ -3,11 +3,11 @@ import { A } from '@solidjs/router';
 
 interface RecipeElementProps {
   title: string;
-  description: string;
   author: string;
   image: string;
   id: number;
   authorProfile: string;
+  authorId: number;
 }
 
 export default function RecipeElement(props: RecipeElementProps) {
@@ -15,7 +15,10 @@ export default function RecipeElement(props: RecipeElementProps) {
     console.log(props.image);
   });
   return (
-    <div class="card max-w-sm bg-base-100 shadow-xl">
+    <A
+      href={`/recipe/${props.id}`}
+      class="card card-compact max-w-lg bg-base-100 shadow-xl"
+    >
       <img
         src={props.image}
         class="object-cover aspect-video w-128 h-64 rounded-xl"
@@ -26,25 +29,17 @@ export default function RecipeElement(props: RecipeElementProps) {
           {props.title}
           {/* <div class="badge badge-secondary">NEW</div> */}
         </h2>
-        <span class="flex flex-row items-center gap-3">
+        <A
+          href={`/profile/${props.authorId}`}
+          class="flex flex-row items-center gap-3"
+        >
           <img
             src={props.authorProfile}
             class="object-cover aspect-1/1 w-8 h-8 rounded-full"
           />
           <h3 class="font-medium text-lg">{props.author}</h3>
-        </span>
-        <p class="truncate">{props.description}</p>
-        <div class="card-actions justify-end">
-          <A
-            href={`/recipe/${props.id}`}
-            class="btn btn-primary"
-          >
-            Let's cook!
-          </A>
-          {/* <div class="badge badge-outline">Fashion</div> */}
-          {/* <div class="badge badge-outline">Products</div> */}
-        </div>
+        </A>
       </div>
-    </div>
+    </A>
   );
 }

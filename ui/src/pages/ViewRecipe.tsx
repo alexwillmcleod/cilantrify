@@ -100,7 +100,10 @@ export default function ViewRecipe() {
               src={recipe()!.picture}
             />
             <h1 class="font-bold text-center text-7xl">{recipe()!.title}</h1>
-            <span class="flex flex-row gap-3 justify-center">
+            <A
+              href={`/profile/${recipe()!.author_id}`}
+              class="flex flex-row gap-3 justify-center"
+            >
               <img
                 class="object-cover aspect-1/1 w-8 h-8 rounded-full"
                 src={recipe()!.author_profile || defaultAvatar}
@@ -108,7 +111,7 @@ export default function ViewRecipe() {
               <h2 class="font-bold text-center text-2xl">
                 {recipe()!.author_given_name} {recipe()!.author_family_name}
               </h2>
-            </span>
+            </A>
             {/* <p>Published on {recipe()!.created_at.getDate()}</p> */}
             <span class="flex flex-row justify-center gap-1">
               <button

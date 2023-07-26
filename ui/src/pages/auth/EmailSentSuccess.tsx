@@ -1,6 +1,7 @@
-import { Accessor, createSignal } from 'solid-js';
+import { Accessor, createSignal, Show } from 'solid-js';
 import { useAuth } from '../../hooks/useAuth';
 import { useNavigate } from '@solidjs/router';
+import { Portal } from 'solid-js/web';
 
 interface EmailSuccessProps {
   email: Accessor<string>;
@@ -43,7 +44,7 @@ export default function EmailSuccess({
       } else {
         await handleSSOLogin(email(), Number.parseInt(code()));
       }
-      navigate('/for-you');
+      navigate('/explore');
     } catch (err) {
       setIsCodeInvalid(true);
     }
@@ -86,13 +87,13 @@ export default function EmailSuccess({
           I mispelt the email
         </button>
       </span>
-      <div
-        class={`fixed top-0 left-0 w-screen z-1000 h-screen justify-center items-center ${
-          isLoading() ? 'flex' : 'hidden'
-        } bg-white/5`}
-      >
-        <span class="loading loading-spinner loading-lg text-primary"></span>
-      </div>
+      <Portal>
+        <Show when={isLoading()}>
+          <div class="fixed top-0 left-0 w-screen z-1000 h-screen justify-center items-center bg-white/5">
+            <span class="loading loading-spinner loading-lg text-primary"></span>
+          </div>
+        </Show>
+      </Portal>
     </div>
   );
 }

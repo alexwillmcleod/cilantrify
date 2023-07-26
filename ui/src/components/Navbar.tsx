@@ -3,7 +3,7 @@ import appLogo from '/whisk-logo.svg';
 import { A, useNavigate } from '@solidjs/router';
 import { useAuth } from '../hooks/useAuth';
 import Settings from './Settings';
-import { createSignal } from 'solid-js';
+import { createSignal, Show } from 'solid-js';
 
 export default function Navbar() {
   const { user, handleLogout } = useAuth()!;
@@ -12,7 +12,7 @@ export default function Navbar() {
   const navigate = useNavigate();
   return (
     <>
-      <div class="navbar bg-base-100 p-10 z-10 sticky top-0">
+      <div class="navbar bg-base-100 p-10 sticky top-0">
         {/* <div class="navbar-start"></div> */}
         <div class="navbar-start">
           <A
@@ -59,15 +59,29 @@ export default function Navbar() {
               tabindex="0"
               class="menu menu-lg sm:menu-md dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52"
             >
-              {user() && (
+              <Show
+                when={user()}
+                fallback={
+                  <li>
+                    <button
+                      onClick={() => {
+                        navigate('/auth/options');
+                      }}
+                    >
+                      Sign In
+                    </button>
+                  </li>
+                }
+              >
                 <li>
-                  <a class="justify-between">
+                  <A
+                    href={`/profile/${user()!.id}`}
+                    class="justify-between"
+                  >
                     Profile
                     <span class="badge">New</span>
-                  </a>
+                  </A>
                 </li>
-              )}
-              {user() && (
                 <li>
                   <button
                     onClick={() => {
@@ -78,8 +92,6 @@ export default function Navbar() {
                     Settings
                   </button>
                 </li>
-              )}
-              {user() ? (
                 <li>
                   <button
                     class="text-error"
@@ -91,17 +103,7 @@ export default function Navbar() {
                     Logout
                   </button>
                 </li>
-              ) : (
-                <li>
-                  <button
-                    onClick={() => {
-                      navigate('/auth/options');
-                    }}
-                  >
-                    Sign In
-                  </button>
-                </li>
-              )}
+              </Show>
             </ul>
           </div>
         </div>
