@@ -12,7 +12,7 @@ export default function SignInOptions() {
   const navigate = useNavigate();
 
   createEffect(() => {
-    if (user()) navigate('/for-you');
+    if (user()) navigate('/explore');
   });
 
   return (
