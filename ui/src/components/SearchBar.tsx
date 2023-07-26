@@ -1,4 +1,4 @@
-import { createEffect, createSignal } from 'solid-js';
+import { createSignal } from 'solid-js';
 import SearchIcon from '/search-icon.svg';
 import { debounce } from 'lodash';
 
@@ -44,7 +44,7 @@ export default function SearchBar({ setSearchTerm }: SearchBarProps) {
         placeholder="Search..."
       />
       <button
-        onClick={handleSearchSubmit}
+        onClick={() => handleSearchSubmit(unsubmittedSearchTerm())}
         class="btn btn-ghost absolute inset-y-0 right-0 flex items-center pr-3"
       >
         <img src={SearchIcon} />
