@@ -42,7 +42,7 @@ export default function SignInOptions() {
             </span>
             <A
               class="text-xl text-blue-300 relative top-5"
-              href="/for-you"
+              href="/explore"
             >
               Or Browse as a Guest
             </A>
