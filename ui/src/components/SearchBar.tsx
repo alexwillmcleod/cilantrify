@@ -1,14 +1,22 @@
-import { createSignal } from 'solid-js';
+import { Accessor, createEffect, createSignal, onMount } from 'solid-js';
 import SearchIcon from '/search-icon.svg';
 import { debounce } from 'lodash';
 
 interface SearchBarProps {
   setSearchTerm: Function;
+  searchTerm: Accessor<string>;
 }
 
-export default function SearchBar({ setSearchTerm }: SearchBarProps) {
+export default function SearchBar({
+  searchTerm,
+  setSearchTerm,
+}: SearchBarProps) {
   const [unsubmittedSearchTerm, setUnsubmittedSearchTerm] =
     createSignal<string>('');
+
+  createEffect(() => {
+    setUnsubmittedSearchTerm(searchTerm());
+  });
 
   const handleSearchSubmit = (searchTerm: string) => {
     setSearchTerm(searchTerm);
@@ -34,21 +42,36 @@ export default function SearchBar({ setSearchTerm }: SearchBarProps) {
   // );
 
   return (
-    <div class="relative">
-      <input
-        type="search"
-        class="input input-bordered join-item w-96"
-        name="search"
-        value={unsubmittedSearchTerm()}
-        onInput={handleUnsubmittedSearchTermChange}
-        placeholder="Search..."
-      />
-      <button
-        onClick={() => handleSearchSubmit(unsubmittedSearchTerm())}
-        class="btn btn-ghost absolute inset-y-0 right-0 flex items-center pr-3"
-      >
-        <img src={SearchIcon} />
-      </button>
+    <div class="md:form-control">
+      <div class="md:input-group">
+        <input
+          type="search"
+          class="input input-bordered md:join-item w-96"
+          name="search"
+          value={unsubmittedSearchTerm()}
+          onInput={handleUnsubmittedSearchTermChange}
+          placeholder="Search for something tasty..."
+        />
+        <button
+          onClick={() => handleSearchSubmit(unsubmittedSearchTerm())}
+          class="md:flex hidden btn md:btn-square"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            />
+          </svg>
+        </button>
+      </div>
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { createEffect } from 'solid-js';
 import { A } from '@solidjs/router';
+import { useSearch } from '../hooks/SearchContext';
 
 interface RecipeElementProps {
   title: string;
@@ -14,9 +15,11 @@ export default function RecipeElement(props: RecipeElementProps) {
   createEffect(() => {
     console.log(props.image);
   });
+  const { setSearchTerm } = useSearch()!;
   return (
     <A
       href={`/recipe/${props.id}`}
+      onClick={() => setSearchTerm('')}
       class="card card-compact max-w-lg bg-base-100 shadow-xl"
     >
       <img

@@ -1,6 +1,6 @@
 import Navbar from '../../components/Navbar';
 import axios from 'axios';
-import { createSignal, JSXElement } from 'solid-js';
+import { createSignal, JSXElement, onCleanup, onMount } from 'solid-js';
 import Ingredients from './Ingredients';
 import Instructions from './Instructions';
 import Name from './Name';
@@ -53,7 +53,6 @@ const StepProgressBar = (props: any) => (
 export default function CreateRecipe() {
   const { user } = useAuth()!;
   const navigate = useNavigate();
-
   const [isLoading, setIsLoading] = createSignal<boolean>(false);
   const [step, setStep]: [Function, Function] = createSignal<number>(0);
 
@@ -166,7 +165,7 @@ export default function CreateRecipe() {
 
   return (
     <div class="flex flex-col">
-      <Navbar />
+      <Navbar isSearchBarVisible={false} />
       {
         [
           <Name

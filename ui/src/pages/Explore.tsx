@@ -1,16 +1,17 @@
 import Navbar from '../components/Navbar';
 import RecipeElement from '../components/RecipeElement';
-import { createEffect, createSignal } from 'solid-js';
+import { Accessor, Show, createEffect, createSignal } from 'solid-js';
 import axios from 'axios';
 import { A } from '@solidjs/router';
 import Pagination from '../components/Pagination';
 import SearchBar from '../components/SearchBar';
 import { useAuth } from '../hooks/useAuth';
+import { useSearch } from '../hooks/SearchContext';
 
 export default function Explore() {
+  const { searchTerm, setSearchTerm } = useSearch()!;
   const [page, setPage] = createSignal<number>(1);
   const [pageCount, setPageCount] = createSignal<number>(1);
-  const [searchTerm, setSearchTerm] = createSignal<string>('');
   const [lastSearchTerm, setLastSearchTerm] = createSignal<string>('');
   createSignal<boolean>(false);
   const { user } = useAuth()!;
@@ -66,32 +67,39 @@ export default function Explore() {
 
   return (
     <div class="flex flex-col min-h-screen ">
-      <Navbar />
+      <Navbar
+        isShouldRedirect={false}
+        isSearchBarVisible={true}
+      />
       <div class="flex flex-col items-center justify-center gap-10 mb-10">
-        <h2 class="font-bold text-display text-3xl">Explore</h2>
-        <SearchBar setSearchTerm={setSearchTerm} />
-        {pageCount() == 0 && <p>No recipes match that search</p>}
-        <ul class="flex flex-col gap-8">
-          {recipes() &&
-            recipes()!.map((element) => (
-              <li>
-                <RecipeElement
-                  title={element.title}
-                  image={element.picture}
-                  author={`${element.author_given_name} ${element.author_family_name}`}
-                  authorProfile={element.author_profile}
-                  authorId={element.author_id}
-                  id={element.id}
-                />
-              </li>
-            ))}
-        </ul>
-        <Pagination
-          currentPage={page}
-          totalPages={pageCount}
-          nextPage={handleNextPage}
-          lastPage={handlePreviousPage}
-        />
+        <Show
+          when={pageCount() >= 1}
+          fallback={<p>No recipes match that search</p>}
+        >
+          <ul class="flex flex-col gap-8">
+            {recipes() &&
+              recipes()!.map((element) => (
+                <li>
+                  <RecipeElement
+                    title={element.title}
+                    image={element.picture}
+                    author={`${element.author_given_name} ${element.author_family_name}`}
+                    authorProfile={element.author_profile}
+                    authorId={element.author_id}
+                    id={element.id}
+                  />
+                </li>
+              ))}
+          </ul>
+        </Show>
+        <Show when={pageCount() > 1}>
+          <Pagination
+            currentPage={page}
+            totalPages={pageCount}
+            nextPage={handleNextPage}
+            lastPage={handlePreviousPage}
+          />
+        </Show>
       </div>
 
       {user() && (

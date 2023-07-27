@@ -5,7 +5,10 @@ import Navbar from '../components/Navbar';
 export default function RecipeNotFound() {
   return (
     <div class="min-h-screen">
-      <Navbar />
+      <Navbar
+        isShouldRedirect={true}
+        isSearchBarVisible={true}
+      />
       <div class="hero h-full ">
         <div class="flex flex-col lg:flex-row hero-content text-center">
           <img

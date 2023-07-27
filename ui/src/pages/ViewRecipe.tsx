@@ -1,5 +1,5 @@
 import { A, useParams } from '@solidjs/router';
-import { createSignal, onMount, JSXElement } from 'solid-js';
+import { createSignal, onMount, JSXElement, Show } from 'solid-js';
 import axios from 'axios';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../hooks/useAuth';
@@ -90,9 +90,19 @@ export default function ViewRecipe() {
   };
 
   return (
-    <>
-      <Navbar />
-      {recipe() ? (
+    <div class="min-h-screen">
+      <Navbar
+        isSearchBarVisible={true}
+        isShouldRedirect={true}
+      />
+      <Show
+        when={recipe()}
+        fallback={
+          <div class="w-screen h-screen flex flex-col justify-center items-center">
+            <span class="loading loading-spinner loading-lg"></span>
+          </div>
+        }
+      >
         <div class="flex flex-col gap-16 mb-16">
           <div class="flex flex-col gap-6">
             <img
@@ -238,11 +248,7 @@ export default function ViewRecipe() {
             </form>
           </dialog>
         </div>
-      ) : (
-        <div class="w-screen h-screen flex flex-col justify-center items-center">
-          <span class="loading loading-spinner loading-lg"></span>
-        </div>
-      )}
-    </>
+      </Show>
+    </div>
   );
 }

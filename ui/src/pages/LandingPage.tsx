@@ -1,4 +1,3 @@
-import Navbar from '../components/Navbar';
 import RecipePreview from '../components/RecipePreview';
 import landingPageCooking from '/landing-page-cooking.svg';
 import lentilMeatballsExample from '/lentil-meatballs-example.jpg';
@@ -7,11 +6,15 @@ import shareIcon from '/share-icon.svg';
 import followIcon from '/follow-user-icon.svg';
 import Footer from '../components/Footer';
 import { A } from '@solidjs/router';
+import Navbar from '../components/Navbar';
 
 export default function LandingPage() {
   return (
     <div class="overflow-x-hidden w-screen">
-      <Navbar />
+      <Navbar
+        isSearchBarVisible={true}
+        isShouldRedirect={true}
+      />
       <div class="hero min-h-screen bg-base-200">
         <div class="hero-content lg:p-0 py-32 flex-col lg:flex-row-reverse">
           <img

@@ -6,6 +6,7 @@ import { createEffect, createSignal, For, Show } from 'solid-js';
 import axios from 'axios';
 import Pagination from '../components/Pagination';
 import SearchBar from '../components/SearchBar';
+import { useSearch } from '../hooks/SearchContext';
 
 interface User {
   givenName: string;
@@ -18,9 +19,9 @@ interface User {
 export default function ViewProfile() {
   const [page, setPage] = createSignal<number>(1);
   const [pageCount, setPageCount] = createSignal<number>(1);
-  const [searchTerm, setSearchTerm] = createSignal<string>('');
   const [lastSearchTerm, setLastSearchTerm] = createSignal<string>('');
   const [user, setUser] = createSignal<User | undefined>(undefined);
+  const { searchTerm, setSearchTerm } = useSearch()!;
 
   const handleNextPage = () => {
     if (!pageCount()) return;
@@ -90,13 +91,17 @@ export default function ViewProfile() {
   createEffect(async () => {
     const userId = useParams()!.id;
     const pageNumber = page(); // Important for reactivity
+    searchTerm();
     await getUser(userId);
     await getSearch(userId, pageNumber);
   });
 
   return (
     <div class="flex flex-col min-h-screen ">
-      <Navbar />
+      <Navbar
+        isSearchBarVisible={true}
+        isShouldRedirect={false}
+      />
       <div class="flex flex-col items-center justify-center gap-10 mb-10">
         <Show when={user()}>
           <div class="flex flex-row gap-5 justify-center items-center">
@@ -109,7 +114,6 @@ export default function ViewProfile() {
             </h2>
           </div>
         </Show>
-        <SearchBar setSearchTerm={setSearchTerm} />
         {pageCount() == 0 && <p>No recipes match that search</p>}
         <ul class="flex flex-col gap-8">
           <Show when={() => recipes() && pageCount() != 0}>

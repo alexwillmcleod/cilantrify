@@ -1,59 +1,81 @@
 import defaultAvatar from '/default-avatar.svg';
 import appLogo from '/whisk-logo.svg';
-import { A, useNavigate } from '@solidjs/router';
+import { A, useLocation, useNavigate } from '@solidjs/router';
 import { useAuth } from '../hooks/useAuth';
 import Settings from './Settings';
-import { createSignal, Show } from 'solid-js';
+import { Accessor, createEffect, createSignal, Show } from 'solid-js';
+import SearchBar from './SearchBar';
+import { useSearch } from '../hooks/SearchContext';
 
-export default function Navbar() {
+interface NavbarProps {
+  isSearchBarVisible: boolean;
+  isShouldRedirect: boolean;
+}
+
+export default function Navbar({
+  isShouldRedirect,
+  isSearchBarVisible,
+}: NavbarProps) {
+  const { searchTerm, setSearchTerm } = useSearch()!;
   const { user, handleLogout } = useAuth()!;
   const [isSettingsVisible, setIsSettingsVisible] =
     createSignal<boolean>(false);
+
   const navigate = useNavigate();
+
+  createEffect(() => {
+    if (searchTerm() != '' && isShouldRedirect) navigate('/explore');
+  });
+
   return (
     <>
-      <div class="navbar bg-base-100 p-10 sticky top-0">
+      <div class="navbar bg-base-100 py-5 px-10 sticky top-0">
         {/* <div class="navbar-start"></div> */}
         <div class="navbar-start">
           <A
             href={user() == undefined ? '/' : '/explore'}
             class="flex flex-row gap-3 items-center"
+            onClick={() => setSearchTerm('')}
           >
             <img
-              class="w-16 md:w-12"
+              class="w-12 md:w-8"
               src={appLogo}
             />
-            <p class="hidden font-display font-bold text-primary text-4xl md:flex">
+            <p class="hidden font-display font-bold text-primary text-3xl md:flex">
               Cilantrify
             </p>
           </A>
         </div>
-        {/* <div class="navbar-center">
-        <div class="flex flex-row gap-4 justify-center items-center w-full max-w-xs">
-          <span class="flex flex-row ">
-            <input
-              type="text"
-              placeholder="Search"
-              class="input input-bordered w-full max-w-xs"
-            />
-            <button class="btn btn-ghost ">
-              <img src={searchIcon} />
-            </button>
-          </span>
-        </div>
-      </div> */}
+        <Show when={isSearchBarVisible}>
+          <div class="lg:flex hidden navbar-center">
+            <div class="flex flex-row gap-4 justify-center items-center w-full max-w-xs">
+              <SearchBar
+                searchTerm={searchTerm}
+                setSearchTerm={setSearchTerm}
+              />
+            </div>
+          </div>
+        </Show>
         <div class="navbar-end flex-row gap-12">
           <div class="dropdown dropdown-end">
             <label
               tabindex="0"
               class="w-16 h-16 btn btn-ghost btn-circle avatar"
             >
-              <img
-                class="rounded-full"
-                src={
-                  user() && user()!.picture ? user()!.picture : defaultAvatar
+              <Show
+                when={user() && user()!.picture}
+                fallback={
+                  <img
+                    class="rounded-full"
+                    src={defaultAvatar}
+                  />
                 }
-              />
+              >
+                <img
+                  class="rounded-full"
+                  src={user()!.picture}
+                />
+              </Show>
             </label>
             <ul
               tabindex="0"
@@ -109,6 +131,14 @@ export default function Navbar() {
         </div>
       </div>
       <Settings isVisible={isSettingsVisible} />
+      <Show when={isSearchBarVisible}>
+        <div class="lg:hidden flex justify-center pb-8">
+          <SearchBar
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+          />
+        </div>
+      </Show>
     </>
   );
 }
