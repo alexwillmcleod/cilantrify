@@ -41,10 +41,10 @@ export default function SearchBar({
   // );
 
   return (
-    <div class="md:input-group">
+    <div class="flex flex-row justify-center md:input-group px-2">
       <input
         type="search"
-        class="input input-bordered md:join-item w-96"
+        class="input input-bordered md:join-item min-w-0 w-fit md:w-96"
         name="search"
         value={unsubmittedSearchTerm()}
         onInput={handleUnsubmittedSearchTermChange}
@@ -52,7 +52,7 @@ export default function SearchBar({
       />
       <button
         onClick={() => handleSearchSubmit(unsubmittedSearchTerm())}
-        class="md:btn md:btn-square md:cursor-pointer"
+        class="hidden md:btn md:btn-square md:cursor-pointer"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
