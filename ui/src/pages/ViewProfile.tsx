@@ -103,7 +103,7 @@ export default function ViewProfile() {
       />
       <div class="flex flex-col items-center justify-center gap-10 mb-10">
         <Show when={user()}>
-          <div class="flex flex-row gap-5 justify-center items-center">
+          <div class="flex flex-col md:flex-row gap-5 justify-center items-center">
             <img
               class="object-cover aspect-1/1 w-24 h-24 rounded-full"
               src={user()!.profilePicture || defaultAvatar}
@@ -114,7 +114,7 @@ export default function ViewProfile() {
           </div>
         </Show>
         {pageCount() == 0 && <p>No recipes from this user match that search</p>}
-        <ul class="flex flex-col gap-8">
+        <ul class="flex flex-col gap-8 px-8">
           <Show when={recipes() && pageCount() != 0}>
             <For each={recipes()!}>
               {(element) => (

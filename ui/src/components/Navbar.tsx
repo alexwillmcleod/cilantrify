@@ -101,6 +101,7 @@ export default function Navbar({
                   <A
                     href={`/profile/${user()!.id}`}
                     class="justify-between"
+                    onClick={() => setSearchTerm('')}
                   >
                     Profile
                     <span class="badge">New</span>
