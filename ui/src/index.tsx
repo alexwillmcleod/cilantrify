@@ -14,7 +14,6 @@ import RecipeNotFound from './pages/RecipeNotFound';
 import EmailSignIn from './pages/auth/EmailSignIn';
 import EditRecipe from './pages/create-recipe/EditRecipe';
 import Explore from './pages/Explore';
-import { createSignal } from 'solid-js';
 import 'flowbite'; // For flowbite ui components
 import { SearchProvider } from './hooks/SearchContext';
 

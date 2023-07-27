@@ -65,7 +65,10 @@ export default function EmailSignIn() {
 
   return (
     <div>
-      <Navbar />
+      <Navbar
+        isSearchBarVisible={false}
+        isShouldRedirect={false}
+      />
       {steps[step()]}
     </div>
   );

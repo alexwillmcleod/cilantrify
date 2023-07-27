@@ -1,9 +1,9 @@
 import defaultAvatar from '/default-avatar.svg';
 import appLogo from '/whisk-logo.svg';
-import { A, useLocation, useNavigate } from '@solidjs/router';
+import { A, useNavigate } from '@solidjs/router';
 import { useAuth } from '../hooks/useAuth';
 import Settings from './Settings';
-import { Accessor, createEffect, createSignal, Show } from 'solid-js';
+import { createEffect, createSignal, Show } from 'solid-js';
 import SearchBar from './SearchBar';
 import { useSearch } from '../hooks/SearchContext';
 

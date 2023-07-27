@@ -5,7 +5,6 @@ import RecipeElement from '../components/RecipeElement';
 import { createEffect, createSignal, For, Show } from 'solid-js';
 import axios from 'axios';
 import Pagination from '../components/Pagination';
-import SearchBar from '../components/SearchBar';
 import { useSearch } from '../hooks/SearchContext';
 
 interface User {
@@ -21,7 +20,7 @@ export default function ViewProfile() {
   const [pageCount, setPageCount] = createSignal<number>(1);
   const [lastSearchTerm, setLastSearchTerm] = createSignal<string>('');
   const [user, setUser] = createSignal<User | undefined>(undefined);
-  const { searchTerm, setSearchTerm } = useSearch()!;
+  const { searchTerm } = useSearch()!;
 
   const handleNextPage = () => {
     if (!pageCount()) return;

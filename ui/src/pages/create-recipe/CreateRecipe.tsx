@@ -1,6 +1,6 @@
 import Navbar from '../../components/Navbar';
 import axios from 'axios';
-import { createSignal, JSXElement, onCleanup, onMount } from 'solid-js';
+import { createSignal, JSXElement } from 'solid-js';
 import Ingredients from './Ingredients';
 import Instructions from './Instructions';
 import Name from './Name';
@@ -165,7 +165,10 @@ export default function CreateRecipe() {
 
   return (
     <div class="flex flex-col">
-      <Navbar isSearchBarVisible={false} />
+      <Navbar
+        isShouldRedirect={false}
+        isSearchBarVisible={false}
+      />
       {
         [
           <Name

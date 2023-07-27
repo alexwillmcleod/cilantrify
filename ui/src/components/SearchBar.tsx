@@ -1,5 +1,4 @@
-import { Accessor, createEffect, createSignal, onMount } from 'solid-js';
-import SearchIcon from '/search-icon.svg';
+import { Accessor, createEffect, createSignal } from 'solid-js';
 import { debounce } from 'lodash';
 
 interface SearchBarProps {

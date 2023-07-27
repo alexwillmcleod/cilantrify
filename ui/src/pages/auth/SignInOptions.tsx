@@ -17,7 +17,10 @@ export default function SignInOptions() {
 
   return (
     <div class="min-h-screen">
-      <Navbar />
+      <Navbar
+        isSearchBarVisible={false}
+        isShouldRedirect={false}
+      />
       <div class="hero bg-base-100">
         <div class="hero-content flex-col lg:flex-row">
           <img

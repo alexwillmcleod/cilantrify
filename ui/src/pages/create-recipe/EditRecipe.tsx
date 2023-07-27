@@ -202,7 +202,10 @@ export default function EditRecipe() {
 
   return (
     <div class="flex flex-col">
-      <Navbar />
+      <Navbar
+        isSearchBarVisible={false}
+        isShouldRedirect={false}
+      />
       {
         [
           <Name

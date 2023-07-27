@@ -1,15 +1,14 @@
 import Navbar from '../components/Navbar';
 import RecipeElement from '../components/RecipeElement';
-import { Accessor, Show, createEffect, createSignal } from 'solid-js';
+import { Show, createEffect, createSignal } from 'solid-js';
 import axios from 'axios';
 import { A } from '@solidjs/router';
 import Pagination from '../components/Pagination';
-import SearchBar from '../components/SearchBar';
 import { useAuth } from '../hooks/useAuth';
 import { useSearch } from '../hooks/SearchContext';
 
 export default function Explore() {
-  const { searchTerm, setSearchTerm } = useSearch()!;
+  const { searchTerm } = useSearch()!;
   const [page, setPage] = createSignal<number>(1);
   const [pageCount, setPageCount] = createSignal<number>(1);
   const [lastSearchTerm, setLastSearchTerm] = createSignal<string>('');
