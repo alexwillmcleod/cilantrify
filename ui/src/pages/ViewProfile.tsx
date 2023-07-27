@@ -113,9 +113,9 @@ export default function ViewProfile() {
             </h2>
           </div>
         </Show>
-        {pageCount() == 0 && <p>No recipes match that search</p>}
+        {pageCount() == 0 && <p>No recipes from this user match that search</p>}
         <ul class="flex flex-col gap-8">
-          <Show when={() => recipes() && pageCount() != 0}>
+          <Show when={recipes() && pageCount() != 0}>
             <For each={recipes()!}>
               {(element) => (
                 <li>
@@ -132,12 +132,14 @@ export default function ViewProfile() {
             </For>
           </Show>
         </ul>
-        <Pagination
-          currentPage={page}
-          totalPages={pageCount}
-          nextPage={handleNextPage}
-          lastPage={handlePreviousPage}
-        />
+        <Show when={recipes() && pageCount() > 1}>
+          <Pagination
+            currentPage={page}
+            totalPages={pageCount}
+            nextPage={handleNextPage}
+            lastPage={handlePreviousPage}
+          />
+        </Show>
       </div>
     </div>
   );
