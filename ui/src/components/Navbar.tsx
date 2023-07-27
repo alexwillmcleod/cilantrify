@@ -46,17 +46,18 @@ export default function Navbar({
             </p>
           </A>
         </div>
-        <Show when={isSearchBarVisible}>
-          <div class="lg:flex hidden navbar-center">
-            <div class="flex flex-row gap-4 justify-center items-center w-full max-w-xs">
-              <SearchBar
-                searchTerm={searchTerm}
-                setSearchTerm={setSearchTerm}
-              />
+
+        <div class="navbar-end flex-row gap-4 w-full">
+          <Show when={isSearchBarVisible}>
+            <div class="lg:flex hidden navbar-center ">
+              <div class="flex flex-row gap-4 justify-center items-center w-full max-w-3xl">
+                <SearchBar
+                  searchTerm={searchTerm}
+                  setSearchTerm={setSearchTerm}
+                />
+              </div>
             </div>
-          </div>
-        </Show>
-        <div class="navbar-end flex-row gap-12">
+          </Show>
           <div class="dropdown dropdown-end">
             <label
               tabindex="0"
@@ -77,6 +78,7 @@ export default function Navbar({
                 />
               </Show>
             </label>
+
             <ul
               tabindex="0"
               class="menu menu-lg sm:menu-md dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52"
@@ -132,7 +134,7 @@ export default function Navbar({
       </div>
       <Settings isVisible={isSettingsVisible} />
       <Show when={isSearchBarVisible}>
-        <div class="lg:hidden flex justify-center pb-8">
+        <div class="lg:hidden flex justify-center pb-8 px-6">
           <SearchBar
             searchTerm={searchTerm}
             setSearchTerm={setSearchTerm}

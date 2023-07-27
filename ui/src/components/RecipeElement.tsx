@@ -20,7 +20,7 @@ export default function RecipeElement(props: RecipeElementProps) {
     <A
       href={`/recipe/${props.id}`}
       onClick={() => setSearchTerm('')}
-      class="card card-compact max-w-lg bg-base-100 shadow-xl"
+      class="card card-compact max-w-md bg-base-100 shadow-xl"
     >
       <img
         src={props.image}

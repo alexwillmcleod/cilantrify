@@ -75,7 +75,7 @@ export default function Explore() {
           when={pageCount() >= 1}
           fallback={<p>No recipes match that search</p>}
         >
-          <ul class="flex flex-col gap-8">
+          <ul class="flex flex-col gap-8 px-8">
             {recipes() &&
               recipes()!.map((element) => (
                 <li>
