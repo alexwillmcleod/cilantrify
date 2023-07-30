@@ -18,5 +18,6 @@ pub fn profile_routes() -> Router<Arc<AppState>> {
       "/update-profile-picture",
       put(update::update_profile_picture),
     )
+    .route("/update-profile-bio", put(update::update_profile_bio))
     .route("/", get(fetch::fetch))
 }

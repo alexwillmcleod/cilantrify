@@ -20,6 +20,7 @@ pub struct User {
   pub email: String,
   pub given_name: String,
   pub family_name: String,
+  pub bio: Option<String>,
   pub id: i32,
 }
 pub async fn fetch(
@@ -31,7 +32,7 @@ pub async fn fetch(
 
   let Ok(user) = sqlx::query_as!(
     User, 
-    "SELECT picture, email, family_name, given_name, id FROM users WHERE id = $1",
+    "SELECT picture, email, family_name, given_name, id, bio FROM users WHERE id = $1",
     &profile_id
   )
     .fetch_one(&state.db)

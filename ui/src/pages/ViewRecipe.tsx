@@ -6,6 +6,7 @@ import { useAuth } from '../hooks/useAuth';
 import { writeClipboard } from '@solid-primitives/clipboard';
 import { useNavigate } from '@solidjs/router';
 import defaultAvatar from '/default-avatar.svg';
+import { round } from 'lodash';
 
 interface Ingredient {
   name: string;
@@ -35,6 +36,22 @@ export default function ViewRecipe() {
   const { user } = useAuth()!;
 
   const [recipe, setRecipe] = createSignal<Recipe | undefined>(undefined);
+  const [measurementSystem, setMeasurementSystem] = createSignal<
+    'metric' | 'imperial'
+  >('metric');
+
+  onMount(() => {
+    const localStorageMeasurementSystem =
+      localStorage.getItem('measurement-unit');
+    if (
+      localStorageMeasurementSystem != 'metric' &&
+      localStorageMeasurementSystem != 'imperial'
+    )
+      return;
+    setMeasurementSystem(
+      localStorageMeasurementSystem as 'metric' | 'imperial'
+    );
+  });
 
   const [snackBarElements, setSnackBarElements] = createSignal<JSXElement[]>(
     []
@@ -194,23 +211,63 @@ export default function ViewRecipe() {
           <div class="flex flex-col gap-3 w-fit px-12 md:px-32">
             <p class="font-semibold text-2xl">Ingredients</p>
             <ul class="flex flex-col gap-2">
-              {recipe()!.ingredients.map((element: any) => (
-                <li class="list-disc">
-                  <div class="flex flex-row gap-4 text-xl">
-                    {element.name}
-                    <div class="italic">
-                      {element.amount}
-                      {element.measurement == 'Units'
-                        ? ''
-                        : element.measurement}
+              {recipe()!.ingredients.map((element: any) => {
+                let measurement = element.measurement;
+                let amount = element.amount;
+                if (measurementSystem() == 'imperial') {
+                  if (measurement == 'L') {
+                    measurement = 'mL';
+                    amount *= 1000;
+                  }
+                  if (measurement == 'mL') {
+                    if (amount < 15) {
+                      measurement = 'tsp';
+                      amount /= 4;
+                    } else if (amount < 60) {
+                      measurement = 'tbsp';
+                      amount /= 15;
+                    } else if (amount < 3_800) {
+                      measurement = 'cup';
+                      amount /= 250;
+                    } else {
+                      measurement = 'gallon';
+                      amount /= 3_800;
+                    }
+                  }
+                  if (measurement == 'kg') {
+                    measurement = 'mg';
+                    amount *= 1_000_000;
+                  } else if (measurement == 'g') {
+                    measurement = 'mg';
+                    amount *= 1_000;
+                  }
+                  if (measurement == 'mg') {
+                    if (amount < 113_000) {
+                      measurement = 'oz';
+                      amount /= 28_000;
+                    } else {
+                      measurement = 'lb';
+                      amount /= 454_000;
+                    }
+                  }
+                  amount = round(amount, 1);
+                }
+                return (
+                  <li class="list-disc">
+                    <div class="flex flex-row gap-4 text-xl">
+                      {element.name}
+                      <div class="italic">
+                        {amount}
+                        {measurement == 'Units' ? '' : measurement}
+                      </div>
                     </div>
-                  </div>
-                </li>
-              ))}
+                  </li>
+                );
+              })}
             </ul>
           </div>
           <div class="flex flex-col gap-4 justify-center w-fit px-12 md:px-32">
-            <p class="font-semibold text-2xl">Instructions</p>
+            <p class="font-semibold text-2xl">Directions</p>
             <ul class="list-decimal flex flex-col gap-8">
               {recipe()!.instructions.map((element: any) => (
                 <li class="list-decimal">

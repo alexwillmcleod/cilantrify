@@ -12,6 +12,52 @@ use serde::Deserialize;
 use crate::{routes::auth::jwt::UserClaims, AppState};
 
 #[derive(Deserialize)]
+pub struct UpdateProfileBioBody {
+  bio: String,
+}
+
+#[debug_handler]
+pub async fn update_profile_bio(
+  State(state): State<Arc<AppState>>,
+  Extension(user_claims): Extension<Option<UserClaims>>,
+  Json(body): Json<UpdateProfileBioBody>,
+) -> Response {
+  tracing::debug!("{:?}", user_claims);
+
+  let Some(user) = user_claims else {
+    return (StatusCode::UNAUTHORIZED, String::from("you must be signed in to update your profile bio")).into_response();
+  };
+
+  match sqlx::query!(
+    r#"
+      UPDATE 
+        users
+      SET bio = $1
+      WHERE users.id = $2
+    "#,
+    body.bio,
+    user.id
+  )
+  .execute(&state.db)
+  .await
+  {
+    Ok(..) => (
+      StatusCode::OK,
+      String::from("successfully updated user bio"),
+    )
+      .into_response(),
+    Err(err) => {
+      tracing::debug!("{:?}", err);
+      (
+        StatusCode::INTERNAL_SERVER_ERROR,
+        String::from("failed to update bio"),
+      )
+        .into_response()
+    }
+  }
+}
+
+#[derive(Deserialize)]
 pub struct UpdateProfilePictureBody {
   image: String,
 }

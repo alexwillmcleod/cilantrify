@@ -58,7 +58,7 @@ export default function Navbar({
               </div>
             </div>
           </Show>
-          <div class="dropdown dropdown-end">
+          <div class="dropdown z-50 dropdown-end">
             <label
               tabindex="0"
               class="w-16 h-16 btn btn-ghost btn-circle avatar"
@@ -81,12 +81,12 @@ export default function Navbar({
 
             <ul
               tabindex="0"
-              class="menu menu-lg sm:menu-md dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52"
+              class="menu menu-lg sm:menu-md dropdown-content mt-3 z-50 p-2 shadow bg-base-100 rounded-box w-52"
             >
               <Show
                 when={user()}
                 fallback={
-                  <li>
+                  <li class="z-50">
                     <button
                       onClick={() => {
                         navigate('/auth/options');
@@ -100,7 +100,7 @@ export default function Navbar({
                 <li>
                   <A
                     href={`/profile/${user()!.id}`}
-                    class="justify-between"
+                    class="justify-between z-50"
                     onClick={() => setSearchTerm('')}
                   >
                     Profile
@@ -109,6 +109,7 @@ export default function Navbar({
                 </li>
                 <li>
                   <button
+                    class="z-50"
                     onClick={() => {
                       setIsSettingsVisible(false);
                       setIsSettingsVisible(true);
@@ -119,7 +120,7 @@ export default function Navbar({
                 </li>
                 <li>
                   <button
-                    class="text-error"
+                    class="text-error z-50"
                     onClick={() => {
                       handleLogout();
                       navigate('/');

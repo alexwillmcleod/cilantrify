@@ -20,6 +20,7 @@ const AuthContext = createContext<{
   ) => Promise<void>;
   getLoginData: () => void;
   setProfilePicture: (image: string) => void;
+  setProfileBio: (bio: string) => void;
   handleLogout: () => void;
 }>();
 
@@ -28,6 +29,7 @@ interface User {
   email: string;
   given_name: string;
   family_name: string;
+  bio: string | undefined;
   id: number;
 }
 
@@ -40,6 +42,10 @@ export const AuthProvider = (props: any) => {
 
   const setProfilePicture = (image: string) => {
     setUser({ ...user()!, picture: image });
+  };
+
+  const setProfileBio = (bio: string) => {
+    setUser({ ...user()!, bio });
   };
 
   const handleGoogleLogin = async (code: string) => {
@@ -135,6 +141,7 @@ export const AuthProvider = (props: any) => {
         getLoginData,
         handleLogout,
         setProfilePicture,
+        setProfileBio,
       }}
     >
       {props.children}

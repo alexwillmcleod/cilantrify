@@ -1,14 +1,27 @@
-import { Accessor, createEffect, createSignal } from 'solid-js';
+import { Accessor, createEffect, createSignal, onMount } from 'solid-js';
 import defaultAvatar from '/default-avatar.svg';
+import settingsIcon from '/settings-icon.svg';
 import { useAuth } from '../hooks/useAuth';
 import axios from 'axios';
+import { random } from 'lodash';
+import { clearDelegatedEvents } from 'solid-js/web';
 
 interface SettingsProps {
   isVisible: Accessor<boolean>;
 }
-
 export default function Settings({ isVisible }: SettingsProps) {
-  const { user, setProfilePicture } = useAuth()!;
+  const { user, setProfilePicture, setProfileBio } = useAuth()!;
+
+  const getBio = () => {
+    if (user() && user()!.bio) {
+      return user()!.bio!;
+    } else {
+      return '';
+    }
+  };
+  const [bio, setBio] = createSignal<string>(getBio());
+
+  let measurementUnitRef: HTMLInputElement | undefined;
 
   createEffect(() => {
     if (isVisible()) {
@@ -61,6 +74,15 @@ export default function Settings({ isVisible }: SettingsProps) {
   const [isProfileImageChanged, setIsProfileImageChanged] =
     createSignal<boolean>(false);
 
+  onMount(() => {
+    const measurementUnit: string = localStorage.getItem('measurement-unit')!;
+    if (measurementUnit == 'metric') {
+      measurementUnitRef!.checked = true;
+    } else {
+      measurementUnitRef!.checked = false;
+    }
+  });
+
   const onSave = async () => {
     if (isProfileImageChanged()) {
       try {
@@ -71,6 +93,23 @@ export default function Settings({ isVisible }: SettingsProps) {
       } catch (err) {
         console.error(err);
       }
+    }
+    if (bio() != user()!.bio) {
+      try {
+        await axios.put('/profile/update-profile-bio', {
+          bio: bio(),
+        });
+        setProfileBio(bio());
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    // Update measurement units
+    if (measurementUnitRef) {
+      localStorage.setItem(
+        'measurement-unit',
+        measurementUnitRef!.checked! ? 'metric' : 'imperial'
+      );
     }
   };
 
@@ -86,8 +125,10 @@ export default function Settings({ isVisible }: SettingsProps) {
         <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
           ✕
         </button>
-        <h3 class="font-bold text-lg">Settings</h3>
-        <div class="flex flex-row gap-4">
+        <h3 class="font-bold text-xl flex flex-row gap-3">
+          <img src={settingsIcon} /> Settings
+        </h3>
+        <div class="flex flex-col gap-4 justify-center">
           {/* <ul class="menu bg-base-200 w-fit rounded-xl h-full">
             <li>
               <a>Profile</a>
@@ -99,12 +140,12 @@ export default function Settings({ isVisible }: SettingsProps) {
               <a>Item 3</a>
             </li>
           </ul> */}
-          <div class="flex flex-col gap-4 w-full">
-            <p>Profile Settings</p>
-            <label>
-              <span class="btn btn-xs p-4 w-full sm:max-w-xs h-fit flex flex-row gap-4 items-center ">
+          <div class="flex flex-col gap-4 w-full justify-center">
+            <p>Profile Picture</p>
+            <label class="flex justify-center w-full">
+              <span class="btn p-4 w-full h-fit flex flex-row gap-4 items-center">
                 <img
-                  class="rounded-full w-24"
+                  class="rounded-full w-24 justify-center"
                   src={newProfileImage() as string}
                 />
                 <p class="text-lg">Change Profile Picture</p>
@@ -115,14 +156,36 @@ export default function Settings({ isVisible }: SettingsProps) {
                 onChange={uploadNewProfileImage}
               ></input>
             </label>
-            <div class="flex flex-row w-full justify-end">
-              <button
-                onClick={onSave}
-                class="btn btn-primary w-16"
-              >
-                Save
-              </button>
-            </div>
+            <p>Bio</p>
+            <textarea
+              class="textarea textarea-bordered max-w-full"
+              value={bio()}
+              onChange={(e) => {
+                setBio(e.target.value);
+              }}
+            ></textarea>
+          </div>
+          <div class="flex flex-col gap-4 w-full justify-start">
+            <p>Measurement Units</p>
+            <label class="swap swap-flip text-xl">
+              <input
+                id="measurement-system"
+                type="checkbox"
+                class="hidden"
+                ref={measurementUnitRef}
+              />
+
+              <div class="swap-on">Metric 🌍</div>
+              <div class="swap-off">Imperial 🗽</div>
+            </label>
+          </div>
+          <div class="flex flex-row w-full justify-end">
+            <button
+              onClick={onSave}
+              class="btn btn-primary w-16"
+            >
+              Save
+            </button>
           </div>
         </div>
       </form>

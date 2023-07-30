@@ -12,6 +12,7 @@ interface User {
   familyName: string;
   profilePicture?: string;
   email: string;
+  bio: string | undefined;
   id: number;
 }
 
@@ -80,6 +81,7 @@ export default function ViewProfile() {
         familyName: res.data.family_name,
         email: res.data.email,
         profilePicture: res.data.picture,
+        bio: res.data.bio,
         id: res.data.id,
       });
     } catch (err) {
@@ -103,14 +105,21 @@ export default function ViewProfile() {
       />
       <div class="flex flex-col items-center justify-center gap-10 mb-10">
         <Show when={user()}>
-          <div class="flex flex-col md:flex-row gap-5 justify-center items-center">
-            <img
-              class="object-cover aspect-1/1 w-24 h-24 rounded-full"
-              src={user()!.profilePicture || defaultAvatar}
-            />
-            <h2 class="font-bold text-center text-4xl">
-              {user()!.givenName} {user()!.familyName}
-            </h2>
+          <div class="flex flex-col gap-3 w-fit  p-8 rounded-xl">
+            <div class="flex flex-col md:flex-row gap-5 justify-center items-center">
+              <img
+                class="object-cover aspect-1/1 w-24 h-24 rounded-full"
+                src={user()!.profilePicture || defaultAvatar}
+              />
+              <h2 class="font-bold text-center text-4xl">
+                {user()!.givenName} {user()!.familyName}
+              </h2>
+            </div>
+            <Show when={user()!.bio}>
+              <p class="border-solid border-4 border-base-200 p-6 text-lg rounded-xl">
+                {user()!.bio}
+              </p>
+            </Show>
           </div>
         </Show>
         {pageCount() == 0 && <p>No recipes from this user match that search</p>}

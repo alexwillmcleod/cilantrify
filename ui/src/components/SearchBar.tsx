@@ -48,7 +48,7 @@ export default function SearchBar({
         name="search"
         value={unsubmittedSearchTerm()}
         onInput={handleUnsubmittedSearchTermChange}
-        placeholder="Search for something tasty..."
+        placeholder="Search..."
       />
       <button
         onClick={() => handleSearchSubmit(unsubmittedSearchTerm())}
