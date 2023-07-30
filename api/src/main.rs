@@ -21,7 +21,7 @@ use http::{
 use serde::{Deserialize, Serialize};
 use std::net::SocketAddr;
 use std::sync::Arc;
-use tower::{limit::RateLimitLayer, ServiceBuilder};
+use tower::{buffer::BufferLayer, limit::RateLimitLayer, ServiceBuilder};
 use tower_http::cors::{Any, CorsLayer};
 use tracing_subscriber;
 
@@ -53,10 +53,11 @@ async fn main() -> Result<()> {
     .layer(
       ServiceBuilder::new()
         .layer(Extension::<Option<UserClaims>>(None))
-        .layer(middleware::from_fn(maybe_auth)),
+        .layer(middleware::from_fn(maybe_auth))
+        .layer(BufferLayer::new(1024))
+        .layer(RateLimitLayer::new(10, time::Duration::seconds(30))),
     )
     .layer(cors)
-    .layer(RateLimitLayer::new(10, Duration::seconds(30)))
     .with_state(Arc::new(AppState::new().await?));
 
   let port: u16 = std::env::var("PORT").unwrap().parse().unwrap();
