@@ -30,7 +30,6 @@ export default function Navbar({
   return (
     <>
       <div class="navbar bg-base-100 py-5 px-10 sticky top-0">
-        {/* <div class="navbar-start"></div> */}
         <div class="navbar-start">
           <A
             href={user() == undefined ? '/' : '/explore'}
@@ -38,10 +37,10 @@ export default function Navbar({
             onClick={() => setSearchTerm('')}
           >
             <img
-              class="w-12 md:w-8"
+              class="w-16 md:w-12"
               src={appLogo}
             />
-            <p class="hidden font-display font-bold text-primary text-3xl md:flex">
+            <p class="hidden font-display font-bold text-primary text-4xl md:flex">
               Cilantrify
             </p>
           </A>
