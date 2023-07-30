@@ -7,6 +7,7 @@ use axum::{
   routing::{get, post},
   Extension, Router,
 };
+use chrono::Duration;
 use cilantrify_api::{
   middleware::auth::maybe_auth,
   routes::auth::{jwt::UserClaims, User},
@@ -20,7 +21,7 @@ use http::{
 use serde::{Deserialize, Serialize};
 use std::net::SocketAddr;
 use std::sync::Arc;
-use tower::ServiceBuilder;
+use tower::{limit::RateLimitLayer, ServiceBuilder};
 use tower_http::cors::{Any, CorsLayer};
 use tracing_subscriber;
 
@@ -55,6 +56,7 @@ async fn main() -> Result<()> {
         .layer(middleware::from_fn(maybe_auth)),
     )
     .layer(cors)
+    .layer(RateLimitLayer::new(10, Duration::seconds(30)))
     .with_state(Arc::new(AppState::new().await?));
 
   let port: u16 = std::env::var("PORT").unwrap().parse().unwrap();
