@@ -3,8 +3,6 @@ import defaultAvatar from '/default-avatar.svg';
 import settingsIcon from '/settings-icon.svg';
 import { useAuth } from '../hooks/useAuth';
 import axios from 'axios';
-import { random } from 'lodash';
-import { clearDelegatedEvents } from 'solid-js/web';
 
 interface SettingsProps {
   isVisible: Accessor<boolean>;
