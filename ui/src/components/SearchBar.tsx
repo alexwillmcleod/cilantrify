@@ -41,22 +41,18 @@ export default function SearchBar({
   // );
 
   return (
-    <div class="flex flex-row justify-center sm:join md:px-0 px-2 w-full max-w-md">
+    <div class="relative rounded-full overflow-hidden">
       <input
-        type="search"
-        class="input input-bordered join-item w-full"
-        name="search"
+        type="text"
         value={unsubmittedSearchTerm()}
         onInput={handleUnsubmittedSearchTermChange}
         placeholder="Search..."
+        class="input border-solid border-4 border-neutral pl-12 pr-3 py-7 w-64 bg-base-100 rounded-full shadow-md focus:outline-none focus:ring focus:ring-blue-300"
       />
-      <button
-        onClick={() => handleSearchSubmit(unsubmittedSearchTerm())}
-        class="join-item hidden sm:btn btn-square cursor-pointer"
-      >
+      <div class="absolute inset-y-0 left-3 flex items-center pr-3 pointer-events-none">
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          class="cursor-pointer h-6 w-6"
+          class="h-6 w-6"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -68,7 +64,7 @@ export default function SearchBar({
             d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
           />
         </svg>
-      </button>
+      </div>
     </div>
   );
 }
