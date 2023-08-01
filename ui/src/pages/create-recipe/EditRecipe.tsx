@@ -118,7 +118,7 @@ export default function EditRecipe() {
         image: image()!.split(',')[1],
       });
       setIsLoading(false);
-      navigate('/for-you');
+      navigate('/explore');
     } catch (err) {
       console.error(err);
       setIsLoading(false);
