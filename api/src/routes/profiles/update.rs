@@ -28,6 +28,14 @@ pub async fn update_profile_bio(
     return (StatusCode::UNAUTHORIZED, String::from("you must be signed in to update your profile bio")).into_response();
   };
 
+  if body.bio.len() > 255 {
+    return (
+      StatusCode::BAD_REQUEST,
+      String::from("Bio is too long. Must be 255 characters or less"),
+    )
+      .into_response();
+  }
+
   match sqlx::query!(
     r#"
       UPDATE 
