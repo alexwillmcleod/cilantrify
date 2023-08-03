@@ -29,7 +29,7 @@ export default function Navbar({
 
   return (
     <>
-      <div class="navbar bg-base-100 py-5 px-10 sticky top-0">
+      <div class="navbar bg-base-100 py-5 px-10 sticky top-0 relative z-[1]">
         <div class="navbar-start">
           <A
             href={user() == undefined ? '/' : '/explore'}
@@ -57,7 +57,7 @@ export default function Navbar({
               </div>
             </div>
           </Show>
-          <div class="dropdown z-50 dropdown-end">
+          <div class="dropdown z-30 dropdown-end">
             <label
               tabindex="0"
               class="w-16 h-16 btn btn-ghost btn-circle avatar"
@@ -80,12 +80,12 @@ export default function Navbar({
 
             <ul
               tabindex="0"
-              class="menu menu-lg sm:menu-md dropdown-content mt-3 z-50 p-2 shadow bg-base-100 rounded-box w-52"
+              class="menu menu-lg sm:menu-md dropdown-content absolute mt-3 z-50 p-2 shadow bg-base-100 rounded-box w-52"
             >
               <Show
                 when={user()}
                 fallback={
-                  <li class="z-50">
+                  <li>
                     <button
                       onClick={() => {
                         navigate('/auth/options');
@@ -99,7 +99,7 @@ export default function Navbar({
                 <li>
                   <A
                     href={`/profile/${user()!.id}`}
-                    class="justify-between z-50"
+                    class="justify-between"
                     onClick={() => setSearchTerm('')}
                   >
                     Profile
@@ -108,7 +108,7 @@ export default function Navbar({
                 </li>
                 <li>
                   <button
-                    class="z-50"
+                    class=""
                     onClick={() => {
                       setIsSettingsVisible(false);
                       setIsSettingsVisible(true);
@@ -119,7 +119,7 @@ export default function Navbar({
                 </li>
                 <li>
                   <button
-                    class="text-error z-50"
+                    class="text-error"
                     onClick={() => {
                       handleLogout();
                       navigate('/');

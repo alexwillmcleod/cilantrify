@@ -1,11 +1,12 @@
 #![feature(async_closure)]
 use anyhow::Result;
 use axum::{
+  error_handling::HandleErrorLayer,
   extract::{Json, State},
   http::StatusCode,
   middleware,
   routing::{get, post},
-  Extension, Router,
+  BoxError, Extension, Router,
 };
 use chrono::Duration;
 use cilantrify_api::{
@@ -22,7 +23,7 @@ use serde::{Deserialize, Serialize};
 use std::net::SocketAddr;
 use std::sync::Arc;
 use tower::{buffer::BufferLayer, limit::RateLimitLayer, ServiceBuilder};
-use tower_http::cors::{Any, CorsLayer};
+use tower_http::cors::CorsLayer;
 use tracing_subscriber;
 
 #[tokio::main]
@@ -46,16 +47,21 @@ async fn main() -> Result<()> {
   let profile_routes = cilantrify_api::routes::profiles::profile_routes();
 
   let app = Router::new()
-    .route("/", get(root))
     .nest("/auth", auth_routes)
     .nest("/recipe", recipe_routes)
     .nest("/profile", profile_routes)
+    .layer(Extension::<Option<UserClaims>>(None))
+    .layer(middleware::from_fn(maybe_auth))
     .layer(
       ServiceBuilder::new()
-        .layer(Extension::<Option<UserClaims>>(None))
-        .layer(middleware::from_fn(maybe_auth))
+        .layer(HandleErrorLayer::new(|err: BoxError| async move {
+          (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            format!("Unhandled error: {}", err),
+          )
+        }))
         .layer(BufferLayer::new(1024))
-        .layer(RateLimitLayer::new(10, time::Duration::seconds(30))),
+        .layer(RateLimitLayer::new(10, std::time::Duration::from_secs(30))),
     )
     .layer(cors)
     .with_state(Arc::new(AppState::new().await?));
@@ -69,16 +75,4 @@ async fn main() -> Result<()> {
     .await?;
 
   Ok(())
-}
-
-async fn root(
-  Extension(user_claims): Extension<Option<UserClaims>>,
-) -> axum::response::Result<String> {
-  match user_claims {
-    Some(user_body) => Ok(format!(
-      "Hello {} {}",
-      user_body.given_name, user_body.family_name
-    )),
-    None => Ok(String::from("Hello, from Axum!")),
-  }
 }
