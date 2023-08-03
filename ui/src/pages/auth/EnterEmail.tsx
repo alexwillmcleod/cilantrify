@@ -106,7 +106,7 @@ export default function EnterEmail({
         </button>
       </div>
       <div
-        class={`fixed top-0 left-0 w-screen z-1000 h-screen justify-center items-center ${
+        class={`fixed top-0 left-0 w-screen z-20 h-screen justify-center items-center ${
           isLoading() ? 'flex' : 'hidden'
         } bg-white/5`}
       >

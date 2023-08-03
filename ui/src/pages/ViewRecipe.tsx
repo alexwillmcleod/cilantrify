@@ -7,6 +7,7 @@ import { writeClipboard } from '@solid-primitives/clipboard';
 import { useNavigate } from '@solidjs/router';
 import defaultAvatar from '/default-avatar.svg';
 import { round } from 'lodash';
+import { usePreferences } from '../hooks/PreferencesContext';
 
 interface Ingredient {
   name: string;
@@ -31,27 +32,12 @@ interface Recipe {
 export default function ViewRecipe() {
   const navigate = useNavigate();
   const params = useParams();
+  const { measurementSystem } = usePreferences()!;
   const { id } = params;
 
   const { user } = useAuth()!;
 
   const [recipe, setRecipe] = createSignal<Recipe | undefined>(undefined);
-  const [measurementSystem, setMeasurementSystem] = createSignal<
-    'metric' | 'imperial'
-  >('metric');
-
-  onMount(() => {
-    const localStorageMeasurementSystem =
-      localStorage.getItem('measurement-unit');
-    if (
-      localStorageMeasurementSystem != 'metric' &&
-      localStorageMeasurementSystem != 'imperial'
-    )
-      return;
-    setMeasurementSystem(
-      localStorageMeasurementSystem as 'metric' | 'imperial'
-    );
-  });
 
   const [snackBarElements, setSnackBarElements] = createSignal<JSXElement[]>(
     []

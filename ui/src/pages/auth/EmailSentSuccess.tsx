@@ -89,7 +89,7 @@ export default function EmailSuccess({
       </span>
       <Portal>
         <Show when={isLoading()}>
-          <div class="fixed top-0 left-0 w-screen z-1000 h-screen justify-center items-center bg-white/5">
+          <div class="fixed top-0 left-0 w-screen z-20 h-screen justify-center items-center bg-white/5">
             <span class="loading loading-spinner loading-lg text-primary"></span>
           </div>
         </Show>

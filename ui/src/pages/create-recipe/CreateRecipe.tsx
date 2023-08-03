@@ -164,7 +164,7 @@ export default function CreateRecipe() {
   };
 
   return (
-    <div class="flex flex-col">
+    <div class="flex flex-col relative">
       <Navbar
         isShouldRedirect={false}
         isSearchBarVisible={false}
@@ -231,7 +231,7 @@ export default function CreateRecipe() {
       <div
         class={`${
           snackBarElements().length == 0 ? 'hidden' : ''
-        }toast toast-start z-50`}
+        }toast toast-start z-10`}
       >
         {snackBarElements()}
       </div>
@@ -255,7 +255,7 @@ export default function CreateRecipe() {
         </form>
       </dialog>
       <div
-        class={`fixed top-0 left-0 w-screen z-1000 h-screen justify-center items-center ${
+        class={`fixed top-0 left-0 w-screen z-20 h-screen justify-center items-center ${
           isLoading() ? 'flex' : 'hidden'
         } bg-white/5`}
       >

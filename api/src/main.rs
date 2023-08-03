@@ -50,10 +50,10 @@ async fn main() -> Result<()> {
     .nest("/auth", auth_routes)
     .nest("/recipe", recipe_routes)
     .nest("/profile", profile_routes)
-    .layer(Extension::<Option<UserClaims>>(None))
-    .layer(middleware::from_fn(maybe_auth))
     .layer(
       ServiceBuilder::new()
+        .layer(Extension::<Option<UserClaims>>(None))
+        .layer(middleware::from_fn(maybe_auth))
         .layer(HandleErrorLayer::new(|err: BoxError| async move {
           (
             StatusCode::INTERNAL_SERVER_ERROR,

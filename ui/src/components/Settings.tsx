@@ -3,12 +3,14 @@ import defaultAvatar from '/default-avatar.svg';
 import settingsIcon from '/settings-icon.svg';
 import { useAuth } from '../hooks/useAuth';
 import axios from 'axios';
+import { usePreferences } from '../hooks/PreferencesContext';
 
 interface SettingsProps {
   isVisible: Accessor<boolean>;
 }
 export default function Settings({ isVisible }: SettingsProps) {
   const { user, setProfilePicture, setProfileBio } = useAuth()!;
+  const { measurementSystem, setMeasurementSystem } = usePreferences()!;
 
   const getBio = () => {
     if (user() && user()!.bio) {
@@ -72,9 +74,8 @@ export default function Settings({ isVisible }: SettingsProps) {
   const [isProfileImageChanged, setIsProfileImageChanged] =
     createSignal<boolean>(false);
 
-  onMount(() => {
-    const measurementUnit: string = localStorage.getItem('measurement-unit')!;
-    if (measurementUnit == 'metric') {
+  createEffect(() => {
+    if (measurementSystem() == 'metric') {
       measurementUnitRef!.checked = true;
     } else {
       measurementUnitRef!.checked = false;
@@ -103,11 +104,10 @@ export default function Settings({ isVisible }: SettingsProps) {
       }
     }
     // Update measurement units
-    if (measurementUnitRef) {
-      localStorage.setItem(
-        'measurement-unit',
-        measurementUnitRef!.checked! ? 'metric' : 'imperial'
-      );
+    if (measurementUnitRef && measurementUnitRef!.checked) {
+      setMeasurementSystem('metric');
+    } else {
+      setMeasurementSystem('imperial');
     }
   };
 
