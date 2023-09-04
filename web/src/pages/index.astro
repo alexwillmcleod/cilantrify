@@ -1,0 +1,12 @@
+---
+import Layout from "../layout.astro";
+import NewTodoInput from '../components/NewTodoInput';
+import TodoList from '../components/TodoList';
+---
+
+<Layout>
+  <div class="flex flex-col p-4 w-screen justify-center items-center gap-8">
+    <NewTodoInput client:load/>
+    <TodoList client:load/>
+  </div>
+</Layout>
